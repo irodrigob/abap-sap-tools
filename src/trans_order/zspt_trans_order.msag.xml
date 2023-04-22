@@ -1,0 +1,74 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_MSAG" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <T100A>
+    <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+    <MASTERLANG>E</MASTERLANG>
+    <STEXT>SPT - Mensajes para transporte de ordenes</STEXT>
+   </T100A>
+   <T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>000</MSGNR>
+     <TEXT>&amp; &amp; &amp; &amp;</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>001</MSGNR>
+     <TEXT>Order/task &amp; released</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>002</MSGNR>
+     <TEXT>Order &amp; created</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>003</MSGNR>
+     <TEXT>Must pass at least one order</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>004</MSGNR>
+     <TEXT>Transport of copies &amp; created and released correctly</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>005</MSGNR>
+     <TEXT>User &amp; modified in order &amp;</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>006</MSGNR>
+     <TEXT>Error updating order &amp;</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>007</MSGNR>
+     <TEXT>Order &amp; updated successfully</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>008</MSGNR>
+     <TEXT>Order &amp; not changed</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>009</MSGNR>
+     <TEXT>The order &amp; does not exist</TEXT>
+    </T100>
+   </T100>
+  </asx:values>
+ </asx:abap>
+</abapGit>
