@@ -78,15 +78,15 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
     lo_order->get_user_orders(
       EXPORTING
         iv_username          = lv_user
-      iv_type_workbench    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zif_spt_trans_order_data=>cs_orders-type-workbench ] )
+      iv_type_workbench    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-workbench ] )
                                      THEN abap_true ELSE abap_false )
-      iv_type_customizing  = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zif_spt_trans_order_data=>cs_orders-type-customizing ] )
+      iv_type_customizing  = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-customizing ] )
                                      THEN abap_true ELSE abap_false )
-      iv_type_transport    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zif_spt_trans_order_data=>cs_orders-type-transport_copies ] )
+      iv_type_transport    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-transport_copies ] )
                                      THEN abap_true ELSE abap_false )
-      iv_status_modif      = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zif_spt_trans_order_data=>cs_orders-status-changeable ] )
+      iv_status_modif      = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-status-changeable ] )
                                      THEN abap_true ELSE abap_false )
-      iv_status_release    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zif_spt_trans_order_data=>cs_orders-status-released ] )
+      iv_status_release    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-status-released ] )
                                      THEN abap_true ELSE abap_false )
       iv_release_from_data =  COND #( WHEN line_exists( it_filter_select_options[ property = 'releaseDateFrom' ] )
                                       THEN it_filter_select_options[ property = 'releaseDateFrom' ]-select_options[ 1 ]-low ELSE sy-datum )

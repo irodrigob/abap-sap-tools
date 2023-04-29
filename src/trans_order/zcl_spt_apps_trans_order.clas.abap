@@ -30,9 +30,21 @@ CLASS zcl_spt_apps_trans_order DEFINITION
              description TYPE as4text,
            END OF ts_update_order.
     TYPES: tt_systems_transport TYPE STANDARD TABLE OF ts_systems_transport WITH EMPTY KEY.
+    TYPES: BEGIN OF ts_release_multiple_orders,
+             order       TYPE trkorr,
+             status      TYPE trstatus,
+             status_desc TYPE val_text.
+        INCLUDE TYPE zif_spt_core_data=>ts_return.
+    TYPES:
+           END OF ts_release_multiple_orders.
+    TYPES: tt_release_multiple_orders TYPE STANDARD TABLE OF ts_release_multiple_orders WITH EMPTY KEY.
     METHODS zif_spt_core_app~get_app_type REDEFINITION.
 
 
+    "! <p class="shorttext synchronized">Devuelve las ordenes de un usuario </p>
+    "! @parameter iv_langu | <p class="shorttext synchronized">Idioma</p>
+    METHODS constructor
+      IMPORTING iv_langu TYPE sylangu DEFAULT sy-langu.
     "! <p class="shorttext synchronized">Devuelve las ordenes de un usuario </p>
     "! @parameter iv_username | <p class="shorttext synchronized">Usuario</p>
     "! @parameter iv_type_workbench | <p class="shorttext synchronized">Ordenes workbench</p>
@@ -68,7 +80,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     "! @parameter ev_order | <p class="shorttext synchronized">Orden creada</p>
     METHODS do_transport_copy
       IMPORTING
-        it_orders                 TYPE zif_spt_trans_order_data=>tt_orders
+        it_orders                 TYPE zcl_spt_trans_order_data=>tt_orders
         iv_system                 TYPE sysname
         iv_description            TYPE string
         iv_release_order_new_task TYPE sap_bool DEFAULT abap_true
@@ -78,12 +90,25 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     "! <p class="shorttext synchronized">Liberación de una orden/tarea</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden/tarea</p>
     "! @parameter iv_without_locking | <p class="shorttext synchronized">Sin bloqueo de objetos</p>
-    "! @parameter rs_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    "! @parameter es_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    "! @parameter ev_status | <p class="shorttext synchronized">Status al liberar</p>
+    "! @parameter ev_status_desc | <p class="shorttext synchronized">Descripción del status</p>
     METHODS release_order
       IMPORTING
                 iv_without_locking TYPE sap_bool DEFAULT abap_false
                 iv_order           TYPE trkorr
-      RETURNING VALUE(rs_return)   TYPE zif_spt_core_data=>ts_return.
+      EXPORTING es_return          TYPE zif_spt_core_data=>ts_return
+                ev_status          TYPE trstatus
+                ev_status_desc     TYPE val_text.
+    "! <p class="shorttext synchronized">Liberación de multiples ordenes/tareas</p>
+    "! @parameter it_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
+    "! @parameter iv_without_locking | <p class="shorttext synchronized">Sin bloqueo de objetos</p>
+    "! @parameter et_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS release_multiple_orders
+      IMPORTING
+                iv_without_locking TYPE sap_bool DEFAULT abap_false
+                it_orders          TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING VALUE(et_return)   TYPE tt_release_multiple_orders.
     "! <p class="shorttext synchronized">Actualiza los datos de una orden/tarea</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden/tarea</p>
     "! @parameter is_data | <p class="shorttext synchronized">Valores</p>
@@ -105,8 +130,9 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         VALUE(rs_return) TYPE zif_spt_core_data=>ts_return.
   PROTECTED SECTION.
 
-    DATA mt_orders_data TYPE zif_spt_trans_order_data=>tt_orders_data.
+    DATA mt_orders_data TYPE zcl_spt_trans_order_data=>tt_orders_data.
     DATA mo_handle_badi_transport_copy TYPE REF TO zspt_badi_transport_copy.
+    DATA mo_order_md TYPE REF TO zcl_spt_apps_trans_order_md.
 
     "! <p class="shorttext synchronized">Parámetros de selección</p>
     "! @parameter iv_username | <p class="shorttext synchronized">Usuario</p>
@@ -129,13 +155,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         iv_release_from_to   TYPE sy-datum OPTIONAL
       RETURNING
         VALUE(rt_selections) TYPE trwbo_selections.
-    "! <p class="shorttext synchronized">Lectura de textos de dominio</p>
-    "! @parameter iv_username | <p class="shorttext synchronized">Usuario</p>
-    "! @parameter iv_type_workbench | <p class="shorttext synchronized">Ordenes workbench</p>
-    METHODS load_domain_texts
-      EXPORTING
-        et_functions TYPE dd07v_tab
-        et_status    TYPE dd07v_tab.
+
     "! <p class="shorttext synchronized">Creación de orden de transporte</p>
     "! @parameter iv_type | <p class="shorttext synchronized">Tipo de orden</p>
     "! @parameter iv_system | <p class="shorttext synchronized">Sistema</p>
@@ -157,7 +177,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     "! @parameter iv_to_order | <p class="shorttext synchronized">Orden destino</p>
     METHODS copy_content_orders_2_order
       IMPORTING
-        it_from_orders TYPE zif_spt_trans_order_data=>tt_orders
+        it_from_orders TYPE zcl_spt_trans_order_data=>tt_orders
         iv_to_order    TYPE trkorr
       EXPORTING
         et_return      TYPE zif_spt_core_data=>tt_return.
@@ -166,7 +186,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     "! @parameter et_return | <p class="shorttext synchronized">Resultado del proceso</p>
     METHODS check_inactive_objects
       IMPORTING
-        it_orders TYPE zif_spt_trans_order_data=>tt_orders
+        it_orders TYPE zcl_spt_trans_order_data=>tt_orders
       EXPORTING
         et_return TYPE zif_spt_core_data=>tt_return.
     "! <p class="shorttext synchronized">Lectura de datos de una orden</p>
@@ -184,7 +204,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     "! @parameter rt_return | <p class="shorttext synchronized">Resultado del proceso</p>
     METHODS get_orders_info
       IMPORTING
-                it_orders        TYPE zif_spt_trans_order_data=>tt_orders
+                it_orders        TYPE zcl_spt_trans_order_data=>tt_orders
       RETURNING VALUE(rt_return) TYPE zif_spt_core_data=>tt_return.
     "! <p class="shorttext synchronized">Llama al método antes de liberar </p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
@@ -206,7 +226,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
+CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
 
 
   METHOD call_badi_before_release_order.
@@ -274,7 +294,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
     ELSE.
       rs_return = VALUE #( type = zif_spt_core_data=>cs_message-type_success
                            message = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_success
-                                                                     iv_id = zif_spt_trans_order_data=>cs_message-id
+                                                                     iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                      iv_number = '005'
                                                                      iv_message_v1 = iv_user
                                                                      iv_message_v2 = iv_order
@@ -380,7 +400,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
     IF sy-subrc = 0.
       es_return = VALUE #( type = zif_spt_core_data=>cs_message-type_success
                                  message = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_success
-                                                                           iv_id = zif_spt_trans_order_data=>cs_message-id
+                                                                           iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                            iv_number = '002'
                                                                            iv_message_v1 = ev_order
                                                                            iv_langu      = mv_langu )-message ).
@@ -424,7 +444,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
         IF et_return IS INITIAL.
 
           " Se crea la orden donde se pondrán los objetos
-          create_order( EXPORTING iv_type = zif_spt_trans_order_data=>cs_orders-type-transport_copies
+          create_order( EXPORTING iv_type = zcl_spt_trans_order_data=>cs_orders-type-transport_copies
                                   iv_description = iv_description
                                   iv_system = iv_system
                         IMPORTING es_return = DATA(ls_return_created)
@@ -453,8 +473,9 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
               ELSE.
 
                 " Se libera la orden
-                ls_return_release = release_order( EXPORTING iv_without_locking = abap_true " Evitamos el error de objetos de bloqueo por transporte de copias
-                                                                   iv_order = ev_order ).
+                release_order( EXPORTING iv_without_locking = abap_true " Evitamos el error de objetos de bloqueo por transporte de copias
+                                         iv_order = ev_order
+                               IMPORTING es_return = ls_return_release ).
 
               ENDIF.
 
@@ -467,7 +488,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
                 " Si no hay errores pongo el mensaje genérico de transporte de copias realizado.
                 INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_success
                                 message = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_success
-                                                                        iv_id = zif_spt_trans_order_data=>cs_message-id
+                                                                        iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                         iv_number = '004'
                                                                         iv_message_v1 = ev_order
                                                                         iv_langu      = mv_langu )-message ) INTO TABLE et_return.
@@ -485,7 +506,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
       ELSE.
         INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error
                         message = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_success
-                                                                          iv_id = zif_spt_trans_order_data=>cs_message-id
+                                                                          iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                           iv_number = '003'
                                                                           iv_langu      = mv_langu )-message ) INTO TABLE et_return.
       ENDIF.
@@ -642,10 +663,6 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
                                                      iv_release_from_data = iv_release_from_data
                                                      iv_release_from_to = iv_release_from_to ).
 
-    " Carga de los textos
-    load_domain_texts( IMPORTING et_functions = DATA(lt_functions_txt)
-                                 et_status    = DATA(lt_status_txt) ).
-
     LOOP AT lt_selections ASSIGNING FIELD-SYMBOL(<ls_selection>).
       " Lectura de las ordenes
       CALL FUNCTION 'TRINT_SELECT_REQUESTS'
@@ -674,7 +691,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
                                               order_desc = <ls_request>-as4text
                                               order_type = <ls_request>-trfunction ).
       TRY.
-          ls_orders-order_type_desc = lt_functions_txt[ domvalue_l = <ls_request>-trfunction ]-ddtext.
+          ls_orders-order_type_desc =  mo_order_md->get_function_desc( <ls_request>-trfunction ).
         CATCH cx_sy_itab_line_not_found.
       ENDTRY.
 
@@ -682,7 +699,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
                                              WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
                                              WHEN sctsc_state_released OR sctsc_state_export_started THEN sctsc_state_released ).
       TRY.
-          ls_orders-order_status_desc = lt_status_txt[ domvalue_l = ls_orders-order_status ]-ddtext.
+          ls_orders-order_status_desc =  mo_order_md->get_status_desc( ls_orders-order_status ).
         CATCH cx_sy_itab_line_not_found.
       ENDTRY.
 
@@ -698,12 +715,12 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
                                              WHEN sctsc_state_released OR sctsc_state_export_started THEN sctsc_state_released ).
 
         TRY.
-            <ls_orders>-task_status_desc = lt_status_txt[ domvalue_l = <ls_orders>-task_status ]-ddtext.
+            <ls_orders>-task_status_desc = mo_order_md->get_status_desc( <ls_orders>-task_status ).
           CATCH cx_sy_itab_line_not_found.
         ENDTRY.
 
         TRY.
-            <ls_orders>-task_type_desc = lt_functions_txt[ domvalue_l = <ls_tasks>-trfunction ]-ddtext.
+            <ls_orders>-task_type_desc = mo_order_md->get_function_desc( <ls_tasks>-trfunction ).
           CATCH cx_sy_itab_line_not_found.
         ENDTRY.
 
@@ -728,45 +745,6 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD load_domain_texts.
-    DATA lt_functions_n TYPE dd07v_tab.
-    DATA lt_status_n TYPE dd07v_tab.
-
-    CLEAR: et_functions, et_status.
-
-    " Textos de tipo de orden
-    IF et_functions IS SUPPLIED.
-      CALL FUNCTION 'DD_DOMA_GET'
-        EXPORTING
-          domain_name   = 'TRFUNCTION'
-          langu         = mv_langu
-        TABLES
-          dd07v_tab_a   = et_functions
-          dd07v_tab_n   = lt_functions_n
-        EXCEPTIONS
-          illegal_value = 1
-          op_failure    = 2
-          OTHERS        = 3.
-    ENDIF.
-
-    " Textos de status
-    IF et_status IS SUPPLIED.
-      CALL FUNCTION 'DD_DOMA_GET'
-        EXPORTING
-          domain_name   = 'TRSTATUS'
-          langu         = mv_langu
-        TABLES
-          dd07v_tab_a   = et_status
-          dd07v_tab_n   = lt_status_n
-        EXCEPTIONS
-          illegal_value = 1
-          op_failure    = 2
-          OTHERS        = 3.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD read_request.
 
     rs_data-h-trkorr = iv_order.
@@ -785,7 +763,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
         OTHERS             = 1.
     IF sy-subrc NE 0.
       DATA(lv_message) = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_error
-                                                                 iv_id = zif_spt_trans_order_data=>cs_message-id
+                                                                 iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                  iv_number = '009'
                                                                  iv_message_v1 = iv_order
                                                                  iv_langu      = mv_langu )-message.
@@ -801,15 +779,15 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
 
   METHOD release_order.
 
-    CLEAR: rs_return.
+    CLEAR: es_return, ev_status, ev_status_desc.
 
     instance_badi_transport_copy(  ).
 
 
     call_badi_before_release_order( EXPORTING iv_order = iv_order
-                                    CHANGING cs_return = rs_return ).
+                                    CHANGING cs_return = es_return ).
 
-    IF rs_return IS INITIAL.
+    IF es_return IS INITIAL.
       CALL FUNCTION 'TRINT_RELEASE_REQUEST'
         EXPORTING
           iv_trkorr                   = iv_order
@@ -838,12 +816,23 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
           error_in_export_methods     = 16
           object_lang_error           = 17.
       IF sy-subrc = 0.
-        rs_return = VALUE #( type = zif_spt_core_data=>cs_message-type_success
+        es_return = VALUE #( type = zif_spt_core_data=>cs_message-type_success
                               message = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_success
-                                                                        iv_id = zif_spt_trans_order_data=>cs_message-id
+                                                                        iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                         iv_number = '001'
                                                                         iv_message_v1 = iv_order
                                                                         iv_langu      = mv_langu )-message ).
+
+        " Si se quiere el status del resultado de liberar lo busco en la E070 y busco su descripción
+        IF ev_status IS SUPPLIED.
+          SELECT SINGLE trstatus INTO ev_status
+                 FROM e070
+                 WHERE trkorr = iv_order.
+          IF sy-subrc = 0.
+            ev_status_desc = mo_order_md->get_status_desc( ev_status ).
+          ENDIF.
+        ENDIF.
+
       ELSE.
         DATA(lv_msgno) = sy-msgno.
         DATA(lv_msgid) = sy-msgid.
@@ -852,7 +841,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
         DATA(lv_msgv3) = sy-msgv3.
         DATA(lv_msgv4) = sy-msgv4.
 
-        rs_return = VALUE #( type = zif_spt_core_data=>cs_message-type_error
+        es_return = VALUE #( type = zif_spt_core_data=>cs_message-type_error
                              message = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_error
                                                                        iv_id = sy-msgid
                                                                        iv_number = sy-msgno
@@ -863,8 +852,8 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
                                                                        iv_langu      = mv_langu )-message ).
         " Para los mensajes estándar si no hay texto mensaje y el idioma global difiere al idioma
         " de conexión entonces saco el mensae en el idioma de logon.
-        IF rs_return-message IS INITIAL AND mv_langu NE sy-langu.
-          rs_return = VALUE #( type = zif_spt_core_data=>cs_message-type_error
+        IF es_return-message IS INITIAL AND mv_langu NE sy-langu.
+          es_return = VALUE #( type = zif_spt_core_data=>cs_message-type_error
                               message = zcl_spt_utilities=>fill_return( iv_type = zif_spt_core_data=>cs_message-type_error
                                                                         iv_id = lv_msgid
                                                                         iv_number = lv_msgno
@@ -932,13 +921,13 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
               OTHERS      = 1.
           IF sy-subrc = 0.
             rs_return = VALUE #( type = zif_spt_core_data=>cs_message-type_success
-                        message = zcl_spt_utilities=>fill_return( iv_id = zif_spt_trans_order_data=>cs_message-id
+                        message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                   iv_number = '007'
                                                                   iv_message_v1 = iv_order
                                                                   iv_langu  = mv_langu )-message ).
           ELSE.
             rs_return = VALUE #( type = zif_spt_core_data=>cs_message-type_error
-                                   message = zcl_spt_utilities=>fill_return( iv_id = zif_spt_trans_order_data=>cs_message-id
+                                   message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                              iv_number = '006'
                                                                              iv_message_v1 = iv_order
                                                                              iv_langu  = mv_langu )-message ).
@@ -950,7 +939,7 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
           rs_return = ls_return_change.
         ELSEIF lv_change_header = abap_false AND lv_user_changed = abap_false.
           rs_return = VALUE #( type = zif_spt_core_data=>cs_message-type_success
-                          message = zcl_spt_utilities=>fill_return( iv_id = zif_spt_trans_order_data=>cs_message-id
+                          message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
                                                                     iv_number = '008'
                                                                     iv_message_v1 = iv_order
                                                                     iv_langu  = mv_langu )-message ).
@@ -977,4 +966,71 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
     es_app-icon = 'shipping-status'.
     es_app-url_help = 'https://github.com/irodrigob/abap-sap-tools-trans-order/wiki'.
   ENDMETHOD.
+  METHOD release_multiple_orders.
+
+    CLEAR: et_return.
+
+    IF it_orders IS NOT INITIAL.
+
+      " Buscamos las ordenes/tareas filtrando las que no esten liberadas. En el caso de ordenes se aprovecha
+      " para buscar sus tareas
+      DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN it_orders ( sign = 'I' option = 'EQ' low = <wa> ) ).
+      SELECT trkorr, strkorr
+             FROM e070
+             WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
+                   AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
+                   AND trkorr IN @lt_r_trkorr
+      UNION
+      SELECT trkorr, strkorr
+             FROM e070
+             WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
+                   AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
+                   AND strkorr IN @lt_r_trkorr
+            INTO TABLE @DATA(lt_orders).
+      IF sy-subrc = 0.
+
+        " Primero se libera las tareas
+        LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS NOT INITIAL.
+          INSERT VALUE #( order = <ls_orders>-trkorr ) INTO TABLE et_return ASSIGNING FIELD-SYMBOL(<ls_return>).
+          release_order( EXPORTING iv_without_locking = iv_without_locking
+                                    iv_order           = <ls_orders>-trkorr
+                         IMPORTING es_return = DATA(ls_return_order)
+                                   ev_status = <ls_return>-status
+                                   ev_status_desc = <ls_return>-status_desc ).
+
+          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_order ).
+        ENDLOOP.
+
+        " Segundo las ordenes
+        LOOP AT lt_orders ASSIGNING <ls_orders> WHERE strkorr IS INITIAL.
+          INSERT VALUE #( order = <ls_orders>-trkorr ) INTO TABLE et_return ASSIGNING <ls_return>.
+          release_order( EXPORTING iv_without_locking = iv_without_locking
+                                   iv_order           = <ls_orders>-trkorr
+                         IMPORTING es_return = DATA(ls_return_task)
+                                   ev_status = <ls_return>-status
+                                   ev_status_desc = <ls_return>-status_desc ).
+
+          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
+        ENDLOOP.
+
+      ELSE.
+        INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error
+                                      message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                                iv_number = '010'
+                                                                                iv_langu = mv_langu )-message ) INTO TABLE et_return.
+      ENDIF.
+    ELSE.
+      INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error
+                                       message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                                 iv_number = '010'
+                                                                                 iv_langu = mv_langu )-message ) INTO TABLE et_return.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD constructor.
+    super->constructor( iv_langu = iv_langu ).
+
+    mo_order_md = NEW #( iv_langu = iv_langu ).
+  ENDMETHOD.
+
 ENDCLASS.
