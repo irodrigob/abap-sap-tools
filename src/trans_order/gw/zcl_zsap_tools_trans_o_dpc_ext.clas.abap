@@ -10,6 +10,7 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
     METHODS dotransportcopys_get_entityset REDEFINITION.
     METHODS orderset_update_entity REDEFINITION.
     METHODS systemsuserset_get_entityset REDEFINITION.
+    METHODS releaseorderset_get_entityset REDEFINITION.
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -122,6 +123,21 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
   METHOD systemsuserset_get_entityset.
 
     et_entityset = NEW zcl_spt_apps_trans_order_md(  )->get_system_users( ).
+
+  ENDMETHOD.
+
+  METHOD releaseorderset_get_entityset.
+
+    CLEAR: et_entityset.
+
+    DATA(lo_order) = NEW zcl_spt_apps_trans_order(  ).
+
+    DATA(lt_return) = lo_order->release_multiple_orders( it_orders  = VALUE #( FOR <wa> IN it_filter_select_options[ property = 'order' ]-select_options ( CONV trkorr( <wa>-low ) ) ) ).
+
+    LOOP AT lt_return ASSIGNING FIELD-SYMBOL(<ls_return>).
+      INSERT CORRESPONDING #( <ls_return> ) INTO TABLE et_entityset ASSIGNING FIELD-SYMBOL(<ls_entityset>).
+      <ls_entityset>-return = CORRESPONDING #( <ls_return> ).
+    ENDLOOP.
 
   ENDMETHOD.
 

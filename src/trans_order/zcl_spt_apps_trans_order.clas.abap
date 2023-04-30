@@ -32,6 +32,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     TYPES: tt_systems_transport TYPE STANDARD TABLE OF ts_systems_transport WITH EMPTY KEY.
     TYPES: BEGIN OF ts_release_multiple_orders,
              order       TYPE trkorr,
+             task        TYPE trkorr,
              status      TYPE trstatus,
              status_desc TYPE val_text.
         INCLUDE TYPE zif_spt_core_data=>ts_return.
@@ -989,20 +990,27 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
             INTO TABLE @DATA(lt_orders).
       IF sy-subrc = 0.
 
-        " Primero se libera las tareas
-        LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS NOT INITIAL.
-          INSERT VALUE #( order = <ls_orders>-trkorr ) INTO TABLE et_return ASSIGNING FIELD-SYMBOL(<ls_return>).
-          release_order( EXPORTING iv_without_locking = iv_without_locking
-                                    iv_order           = <ls_orders>-trkorr
-                         IMPORTING es_return = DATA(ls_return_order)
-                                   ev_status = <ls_return>-status
-                                   ev_status_desc = <ls_return>-status_desc ).
+        " Leemos las ordenes para ir liberando sus tareas y finalmente las ordenes
+        LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
+          DATA(lv_tabix_order) = sy-tabix.
 
-          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_order ).
-        ENDLOOP.
+          LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_task>) WHERE strkorr = <ls_orders>-trkorr.
+            DATA(lv_tabix_task) = sy-tabix.
 
-        " Segundo las ordenes
-        LOOP AT lt_orders ASSIGNING <ls_orders> WHERE strkorr IS INITIAL.
+            INSERT VALUE #( task = <ls_task>-trkorr
+                            order = <ls_task>-strkorr ) INTO TABLE et_return ASSIGNING FIELD-SYMBOL(<ls_return>).
+            release_order( EXPORTING iv_without_locking = iv_without_locking
+                                      iv_order           = <ls_task>-trkorr
+                           IMPORTING es_return = DATA(ls_return_order)
+                                     ev_status = <ls_return>-status
+                                     ev_status_desc = <ls_return>-status_desc ).
+
+            <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_order ).
+
+            DELETE lt_orders INDEX lv_tabix_task. " Quitamos la tarea para que no se procese de nuevo
+          ENDLOOP.
+
+
           INSERT VALUE #( order = <ls_orders>-trkorr ) INTO TABLE et_return ASSIGNING <ls_return>.
           release_order( EXPORTING iv_without_locking = iv_without_locking
                                    iv_order           = <ls_orders>-trkorr
@@ -1011,7 +1019,23 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
                                    ev_status_desc = <ls_return>-status_desc ).
 
           <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
+
+          DELETE lt_orders INDEX lv_tabix_order. " Quitamos la tarea para que no se procese de nuevo
         ENDLOOP.
+
+        " Ahora se liberan las tareas sueltas que quedan
+        LOOP AT lt_orders ASSIGNING <ls_orders>.
+          INSERT VALUE #( task = <ls_orders>-trkorr
+                          order = <ls_orders>-strkorr ) INTO TABLE et_return ASSIGNING <ls_return>.
+          release_order( EXPORTING iv_without_locking = iv_without_locking
+                                    iv_order          = <ls_orders>-trkorr
+                         IMPORTING es_return = ls_return_task
+                                   ev_status = <ls_return>-status
+                                   ev_status_desc = <ls_return>-status_desc ).
+
+          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
+        ENDLOOP.
+
 
       ELSE.
         INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error

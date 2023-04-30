@@ -41,6 +41,13 @@ public section.
   types:
     TT_GETUSERSORDERS type standard table of TS_GETUSERSORDERS .
   types:
+      begin of TS_SYSTEMSUSER,
+     USER type SYUNAME,
+     USER_DESC type AD_NAMTEXT,
+  end of TS_SYSTEMSUSER .
+  types:
+    TT_SYSTEMSUSER type standard table of TS_SYSTEMSUSER .
+  types:
       begin of TS_GETSYSTEMSTRANSPORT,
      SYSTEM_NAME type string,
      SYSTEM_DESC type string,
@@ -68,17 +75,21 @@ public section.
   types:
     TT_ORDER type standard table of TS_ORDER .
   types:
-      begin of TS_SYSTEMSUSER,
-     USER type SYUNAME,
-     USER_DESC type AD_NAMTEXT,
-  end of TS_SYSTEMSUSER .
+      begin of TS_RELEASEORDER,
+     ORDER type TRKORR,
+     TASK type TRKORR,
+     STATUS type TRSTATUS,
+     STATUS_DESC type string,
+     RETURN type RETURN,
+  end of TS_RELEASEORDER .
   types:
-    TT_SYSTEMSUSER type standard table of TS_SYSTEMSUSER .
+    TT_RELEASEORDER type standard table of TS_RELEASEORDER .
 
   constants GC_DOTRANSPORTCOPY type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'doTransportCopy' ##NO_TEXT.
   constants GC_GETSYSTEMSTRANSPORT type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'getSystemsTransport' ##NO_TEXT.
   constants GC_GETUSERSORDERS type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'getUsersOrders' ##NO_TEXT.
   constants GC_ORDER type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'order' ##NO_TEXT.
+  constants GC_RELEASEORDER type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'releaseOrder' ##NO_TEXT.
   constants GC_RETURN type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'return' ##NO_TEXT.
   constants GC_SYSTEMSUSER type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'systemsUser' ##NO_TEXT.
 
@@ -102,6 +113,9 @@ private section.
   methods DEFINE_GETUSERSORDERS
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_SYSTEMSUSER
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
   methods DEFINE_GETSYSTEMSTRANSPORT
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
@@ -111,7 +125,7 @@ private section.
   methods DEFINE_ORDER
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
-  methods DEFINE_SYSTEMSUSER
+  methods DEFINE_RELEASEORDER
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
 ENDCLASS.
@@ -134,10 +148,11 @@ model->set_schema_namespace( 'ZSAP_TOOLS_TRANS_ORDER_SRV' ).
 
 define_complextypes( ).
 define_getusersorders( ).
+define_systemsuser( ).
 define_getsystemstransport( ).
 define_dotransportcopy( ).
 define_order( ).
-define_systemsuser( ).
+define_releaseorder( ).
   endmethod.
 
 
@@ -667,6 +682,102 @@ lo_entity_set->set_filter_required( abap_false ).
   endmethod.
 
 
+  method DEFINE_RELEASEORDER.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+  data:
+        lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                "#EC NEEDED
+        lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                "#EC NEEDED
+        lo_complex_type   type ref to /iwbep/if_mgw_odata_cmplx_type,                "#EC NEEDED
+        lo_property       type ref to /iwbep/if_mgw_odata_property,                  "#EC NEEDED
+        lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ENTITY - releaseOrder
+***********************************************************************************************************************************
+
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'releaseOrder' iv_def_entity_set = abap_false ). "#EC NOTEXT
+
+***********************************************************************************************************************************
+*Properties
+***********************************************************************************************************************************
+
+lo_property = lo_entity_type->create_property( iv_property_name = 'order' iv_abap_fieldname = 'ORDER' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_true ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'task' iv_abap_fieldname = 'TASK' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'status' iv_abap_fieldname = 'STATUS' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'statusDesc' iv_abap_fieldname = 'STATUS_DESC' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_complex_type = lo_entity_type->create_complex_property( iv_property_name = 'return'
+                                                           iv_complex_type_name = 'return'
+                                                           iv_abap_fieldname    = 'RETURN' ). "#EC NOTEXT
+
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_RELEASEORDER' ). "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   ENTITY SETS
+***********************************************************************************************************************************
+lo_entity_set = lo_entity_type->create_entity_set( 'releaseOrderSet' ). "#EC NOTEXT
+
+lo_entity_set->set_creatable( abap_false ).
+lo_entity_set->set_updatable( abap_false ).
+lo_entity_set->set_deletable( abap_false ).
+
+lo_entity_set->set_pageable( abap_false ).
+lo_entity_set->set_addressable( abap_false ).
+lo_entity_set->set_has_ftxt_search( abap_false ).
+lo_entity_set->set_subscribable( abap_false ).
+lo_entity_set->set_filter_required( abap_false ).
+  endmethod.
+
+
   method DEFINE_SYSTEMSUSER.
 *&---------------------------------------------------------------------*
 *&           Generated code for the MODEL PROVIDER BASE CLASS         &*
@@ -748,7 +859,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230420202633'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230430113903'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.
