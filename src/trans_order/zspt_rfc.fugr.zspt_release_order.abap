@@ -12,8 +12,9 @@ FUNCTION ZSPT_RELEASE_ORDER.
 
   DATA(lo_transp_order) = NEW zcl_spt_apps_trans_order( iv_langu = iv_langu ).
 
-  DATA(ls_return) = lo_transp_order->release_order( EXPORTING iv_without_locking = iv_without_locking
-                                                              iv_order           = iv_order ).
+  lo_transp_order->release_order( EXPORTING iv_without_locking = iv_without_locking
+                                            iv_order           = iv_order
+                                  IMPORTING es_return = DATA(ls_return) ).
 
   es_return-type = ls_return-type.
   es_return-message = ls_return-message.
