@@ -39,6 +39,20 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     TYPES:
            END OF ts_release_multiple_orders.
     TYPES: tt_release_multiple_orders TYPE STANDARD TABLE OF ts_release_multiple_orders WITH EMPTY KEY.
+    TYPES: BEGIN OF ts_order_objects,
+             order       TYPE trkorr,
+             as4pos      TYPE ddposition,
+             pgmid       TYPE pgmid,
+             object      TYPE trobjtype,
+             object_desc TYPE ddtext,
+             obj_name    TYPE trobj_name,
+             objfunc     TYPE objfunc,
+             lockflag    TYPE lockflag,
+             gennum      TYPE trgennum,
+             lang        TYPE spras,
+             activity    TYPE tractivity,
+           END OF ts_order_objects.
+    TYPES: tt_orders_objects TYPE STANDARD TABLE OF ts_order_objects WITH EMPTY KEY.
     METHODS zif_spt_core_app~get_app_type REDEFINITION.
 
 
@@ -129,8 +143,14 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         iv_order         TYPE trkorr
       RETURNING
         VALUE(rs_return) TYPE zif_spt_core_data=>ts_return.
+    "! <p class="shorttext synchronized">Devuelve los objetos de una orden/p>
+    "! @parameter it_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
+    "! @parameter rt_objects | <p class="shorttext synchronized">Lista de objetos</p>
+    METHODS get_orders_objects
+      IMPORTING it_orders         TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING VALUE(rt_objects) TYPE tt_orders_objects.
   PROTECTED SECTION.
-
+    TYPES tt_objects_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY.
     DATA mt_orders_data TYPE zcl_spt_trans_order_data=>tt_orders_data.
     DATA mo_handle_badi_transport_copy TYPE REF TO zspt_badi_transport_copy.
     DATA mo_order_md TYPE REF TO zcl_spt_apps_trans_order_md.
@@ -192,12 +212,14 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         et_return TYPE zif_spt_core_data=>tt_return.
     "! <p class="shorttext synchronized">Lectura de datos de una orden</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter iv_read_objects | <p class="shorttext synchronized">Obtener objetos de la orden</p>
     "! @parameter rs_data | <p class="shorttext synchronized">Datos del orden</p>
     METHODS read_request
       IMPORTING
-                iv_order       TYPE trkorr
+                iv_order        TYPE trkorr
+                iv_read_objects TYPE sap_bool DEFAULT abap_false
       RETURNING
-                VALUE(rs_data) TYPE trwbo_request
+                VALUE(rs_data)  TYPE trwbo_request
       RAISING   zcx_spt_trans_order.
 
     "! <p class="shorttext synchronized">Lectura de los datos de las ordenes</p>
@@ -217,6 +239,11 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         cs_return TYPE zif_spt_core_data=>ts_return.
     "! <p class="shorttext synchronized">Instancia la BADI de transporte de copias</p>
     METHODS instance_badi_transport_copy.
+    "! <p class="shorttext synchronized">Lee los textos de los objetos</p>
+    "! @parameter rt_object_text | <p class="shorttext synchronized">Textos de los objetos</p>
+    METHODS read_object_texts
+      RETURNING
+        VALUE(rt_object_text) TYPE tt_objects_texts.
 
 
 
@@ -756,7 +783,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
         iv_read_e07t       = 'X'
         iv_read_e070c      = 'X'
         iv_read_e070m      = 'X'
-        iv_read_objs_keys  = 'X'
+        iv_read_objs_keys  = iv_read_objects
         iv_read_attributes = 'X'
       CHANGING
         cs_request         = rs_data
@@ -832,6 +859,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
           IF sy-subrc = 0.
             ev_status_desc = mo_order_md->get_status_desc( ev_status ).
           ENDIF.
+
         ENDIF.
 
       ELSE.
@@ -1055,6 +1083,45 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
     super->constructor( iv_langu = iv_langu ).
 
     mo_order_md = NEW #( iv_langu = iv_langu ).
+  ENDMETHOD.
+
+  METHOD get_orders_objects.
+
+    CLEAR: rt_objects.
+
+    IF it_orders IS INITIAL. EXIT. ENDIF.
+
+    SELECT * INTO TABLE @DATA(lt_e071)
+           FROM e071
+           FOR ALL ENTRIES IN @it_orders
+           WHERE trkorr = @it_orders-table_line.
+    IF sy-subrc = 0.
+
+      DATA(lt_objects_texts) = read_object_texts(  ).
+
+      LOOP AT lt_e071 ASSIGNING FIELD-SYMBOL(<ls_e071>).
+        INSERT CORRESPONDING #( <ls_e071> ) INTO TABLE rt_objects ASSIGNING FIELD-SYMBOL(<ls_objects>).
+        <ls_objects>-order = <ls_e071>-trkorr.
+        TRY.
+            <ls_objects>-object_desc = lt_objects_texts[ pgmid  = <ls_e071>-pgmid object = <ls_e071>-object ]-text.
+          CATCH cx_sy_itab_line_not_found.
+            " Si no existe puedes ser porque sea un objeto que hay que hacer directamente por el tipo de objeto. Eso ocurre con las traducciones. Que en
+            " PGMID viene 'LANG' y no lo encuentro. En esos casos solo se busca por el tipo de objeto
+            TRY.
+                <ls_objects>-object_desc = lt_objects_texts[ object = <ls_e071>-object ]-text.
+              CATCH cx_sy_itab_line_not_found.
+            ENDTRY.
+        ENDTRY.
+      ENDLOOP.
+
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD read_object_texts.
+    CALL FUNCTION 'TR_OBJECT_TABLE'
+      TABLES
+        wt_object_text = rt_object_text[].
   ENDMETHOD.
 
 ENDCLASS.
