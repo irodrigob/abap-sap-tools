@@ -254,7 +254,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
+CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
 
 
   METHOD call_badi_before_release_order.
@@ -379,6 +379,13 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
 
     ENDLOOP.
 
+  ENDMETHOD.
+
+
+  METHOD constructor.
+    super->constructor( iv_langu = iv_langu ).
+
+    mo_order_md = NEW #( iv_langu = iv_langu ).
   ENDMETHOD.
 
 
@@ -642,6 +649,39 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_orders_objects.
+
+    CLEAR: rt_objects.
+
+    IF it_orders IS INITIAL. EXIT. ENDIF.
+
+    SELECT * INTO TABLE @DATA(lt_e071)
+           FROM e071
+           FOR ALL ENTRIES IN @it_orders
+           WHERE trkorr = @it_orders-table_line.
+    IF sy-subrc = 0.
+
+      DATA(lt_objects_texts) = read_object_texts(  ).
+
+      LOOP AT lt_e071 ASSIGNING FIELD-SYMBOL(<ls_e071>).
+        INSERT CORRESPONDING #( <ls_e071> ) INTO TABLE rt_objects ASSIGNING FIELD-SYMBOL(<ls_objects>).
+        <ls_objects>-order = <ls_e071>-trkorr.
+        TRY.
+            <ls_objects>-object_desc = lt_objects_texts[ pgmid  = <ls_e071>-pgmid object = <ls_e071>-object ]-text.
+          CATCH cx_sy_itab_line_not_found.
+            " Si no existe puedes ser porque sea un objeto que hay que hacer directamente por el tipo de objeto. Eso ocurre con las traducciones. Que en
+            " PGMID viene 'LANG' y no lo encuentro. En esos casos solo se busca por el tipo de objeto
+            TRY.
+                <ls_objects>-object_desc = lt_objects_texts[ object = <ls_e071>-object ]-text.
+              CATCH cx_sy_itab_line_not_found.
+            ENDTRY.
+        ENDTRY.
+      ENDLOOP.
+
+    ENDIF.
+  ENDMETHOD.
+
+
   METHOD get_systems_transport.
     DATA lv_version TYPE tcevers-version.
 
@@ -773,6 +813,13 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD read_object_texts.
+    CALL FUNCTION 'TR_OBJECT_TABLE'
+      TABLES
+        wt_object_text = rt_object_text[].
+  ENDMETHOD.
+
+
   METHOD read_request.
 
     rs_data-h-trkorr = iv_order.
@@ -802,6 +849,91 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
           mv_msgv1 = lv_message.
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD release_multiple_orders.
+
+    CLEAR: et_return.
+
+    IF it_orders IS NOT INITIAL.
+
+      " Buscamos las ordenes/tareas filtrando las que no esten liberadas. En el caso de ordenes se aprovecha
+      " para buscar sus tareas
+      DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN it_orders ( sign = 'I' option = 'EQ' low = <wa> ) ).
+      SELECT trkorr, strkorr
+             FROM e070
+             WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
+                   AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
+                   AND trkorr IN @lt_r_trkorr
+      UNION
+      SELECT trkorr, strkorr
+             FROM e070
+             WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
+                   AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
+                   AND strkorr IN @lt_r_trkorr
+            INTO TABLE @DATA(lt_orders).
+      IF sy-subrc = 0.
+
+        " Leemos las ordenes para ir liberando sus tareas y finalmente las ordenes
+        LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
+          DATA(lv_tabix_order) = sy-tabix.
+
+          LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_task>) WHERE strkorr = <ls_orders>-trkorr.
+            DATA(lv_tabix_task) = sy-tabix.
+
+            INSERT VALUE #( task = <ls_task>-trkorr
+                            order = <ls_task>-strkorr ) INTO TABLE et_return ASSIGNING FIELD-SYMBOL(<ls_return>).
+            release_order( EXPORTING iv_without_locking = iv_without_locking
+                                      iv_order           = <ls_task>-trkorr
+                           IMPORTING es_return = DATA(ls_return_order)
+                                     ev_status = <ls_return>-status
+                                     ev_status_desc = <ls_return>-status_desc ).
+
+            <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_order ).
+
+            DELETE lt_orders INDEX lv_tabix_task. " Quitamos la tarea para que no se procese de nuevo
+          ENDLOOP.
+
+
+          INSERT VALUE #( order = <ls_orders>-trkorr ) INTO TABLE et_return ASSIGNING <ls_return>.
+          release_order( EXPORTING iv_without_locking = iv_without_locking
+                                   iv_order           = <ls_orders>-trkorr
+                         IMPORTING es_return = DATA(ls_return_task)
+                                   ev_status = <ls_return>-status
+                                   ev_status_desc = <ls_return>-status_desc ).
+
+          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
+
+          DELETE lt_orders INDEX lv_tabix_order. " Quitamos la tarea para que no se procese de nuevo
+        ENDLOOP.
+
+        " Ahora se liberan las tareas sueltas que quedan
+        LOOP AT lt_orders ASSIGNING <ls_orders>.
+          INSERT VALUE #( task = <ls_orders>-trkorr
+                          order = <ls_orders>-strkorr ) INTO TABLE et_return ASSIGNING <ls_return>.
+          release_order( EXPORTING iv_without_locking = iv_without_locking
+                                    iv_order          = <ls_orders>-trkorr
+                         IMPORTING es_return = ls_return_task
+                                   ev_status = <ls_return>-status
+                                   ev_status_desc = <ls_return>-status_desc ).
+
+          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
+        ENDLOOP.
+
+
+      ELSE.
+        INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error
+                                      message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                                iv_number = '010'
+                                                                                iv_langu = mv_langu )-message ) INTO TABLE et_return.
+      ENDIF.
+    ELSE.
+      INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error
+                                       message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                                 iv_number = '010'
+                                                                                 iv_langu = mv_langu )-message ) INTO TABLE et_return.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -995,133 +1127,4 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
     es_app-icon = 'shipping-status'.
     es_app-url_help = 'https://github.com/irodrigob/abap-sap-tools-trans-order/wiki'.
   ENDMETHOD.
-  METHOD release_multiple_orders.
-
-    CLEAR: et_return.
-
-    IF it_orders IS NOT INITIAL.
-
-      " Buscamos las ordenes/tareas filtrando las que no esten liberadas. En el caso de ordenes se aprovecha
-      " para buscar sus tareas
-      DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN it_orders ( sign = 'I' option = 'EQ' low = <wa> ) ).
-      SELECT trkorr, strkorr
-             FROM e070
-             WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
-                   AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
-                   AND trkorr IN @lt_r_trkorr
-      UNION
-      SELECT trkorr, strkorr
-             FROM e070
-             WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
-                   AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
-                   AND strkorr IN @lt_r_trkorr
-            INTO TABLE @DATA(lt_orders).
-      IF sy-subrc = 0.
-
-        " Leemos las ordenes para ir liberando sus tareas y finalmente las ordenes
-        LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
-          DATA(lv_tabix_order) = sy-tabix.
-
-          LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_task>) WHERE strkorr = <ls_orders>-trkorr.
-            DATA(lv_tabix_task) = sy-tabix.
-
-            INSERT VALUE #( task = <ls_task>-trkorr
-                            order = <ls_task>-strkorr ) INTO TABLE et_return ASSIGNING FIELD-SYMBOL(<ls_return>).
-            release_order( EXPORTING iv_without_locking = iv_without_locking
-                                      iv_order           = <ls_task>-trkorr
-                           IMPORTING es_return = DATA(ls_return_order)
-                                     ev_status = <ls_return>-status
-                                     ev_status_desc = <ls_return>-status_desc ).
-
-            <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_order ).
-
-            DELETE lt_orders INDEX lv_tabix_task. " Quitamos la tarea para que no se procese de nuevo
-          ENDLOOP.
-
-
-          INSERT VALUE #( order = <ls_orders>-trkorr ) INTO TABLE et_return ASSIGNING <ls_return>.
-          release_order( EXPORTING iv_without_locking = iv_without_locking
-                                   iv_order           = <ls_orders>-trkorr
-                         IMPORTING es_return = DATA(ls_return_task)
-                                   ev_status = <ls_return>-status
-                                   ev_status_desc = <ls_return>-status_desc ).
-
-          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
-
-          DELETE lt_orders INDEX lv_tabix_order. " Quitamos la tarea para que no se procese de nuevo
-        ENDLOOP.
-
-        " Ahora se liberan las tareas sueltas que quedan
-        LOOP AT lt_orders ASSIGNING <ls_orders>.
-          INSERT VALUE #( task = <ls_orders>-trkorr
-                          order = <ls_orders>-strkorr ) INTO TABLE et_return ASSIGNING <ls_return>.
-          release_order( EXPORTING iv_without_locking = iv_without_locking
-                                    iv_order          = <ls_orders>-trkorr
-                         IMPORTING es_return = ls_return_task
-                                   ev_status = <ls_return>-status
-                                   ev_status_desc = <ls_return>-status_desc ).
-
-          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
-        ENDLOOP.
-
-
-      ELSE.
-        INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error
-                                      message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
-                                                                                iv_number = '010'
-                                                                                iv_langu = mv_langu )-message ) INTO TABLE et_return.
-      ENDIF.
-    ELSE.
-      INSERT VALUE #( type = zif_spt_core_data=>cs_message-type_error
-                                       message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
-                                                                                 iv_number = '010'
-                                                                                 iv_langu = mv_langu )-message ) INTO TABLE et_return.
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD constructor.
-    super->constructor( iv_langu = iv_langu ).
-
-    mo_order_md = NEW #( iv_langu = iv_langu ).
-  ENDMETHOD.
-
-  METHOD get_orders_objects.
-
-    CLEAR: rt_objects.
-
-    IF it_orders IS INITIAL. EXIT. ENDIF.
-
-    SELECT * INTO TABLE @DATA(lt_e071)
-           FROM e071
-           FOR ALL ENTRIES IN @it_orders
-           WHERE trkorr = @it_orders-table_line.
-    IF sy-subrc = 0.
-
-      DATA(lt_objects_texts) = read_object_texts(  ).
-
-      LOOP AT lt_e071 ASSIGNING FIELD-SYMBOL(<ls_e071>).
-        INSERT CORRESPONDING #( <ls_e071> ) INTO TABLE rt_objects ASSIGNING FIELD-SYMBOL(<ls_objects>).
-        <ls_objects>-order = <ls_e071>-trkorr.
-        TRY.
-            <ls_objects>-object_desc = lt_objects_texts[ pgmid  = <ls_e071>-pgmid object = <ls_e071>-object ]-text.
-          CATCH cx_sy_itab_line_not_found.
-            " Si no existe puedes ser porque sea un objeto que hay que hacer directamente por el tipo de objeto. Eso ocurre con las traducciones. Que en
-            " PGMID viene 'LANG' y no lo encuentro. En esos casos solo se busca por el tipo de objeto
-            TRY.
-                <ls_objects>-object_desc = lt_objects_texts[ object = <ls_e071>-object ]-text.
-              CATCH cx_sy_itab_line_not_found.
-            ENDTRY.
-        ENDTRY.
-      ENDLOOP.
-
-    ENDIF.
-  ENDMETHOD.
-
-
-  METHOD read_object_texts.
-    CALL FUNCTION 'TR_OBJECT_TABLE'
-      TABLES
-        wt_object_text = rt_object_text[].
-  ENDMETHOD.
-
 ENDCLASS.
