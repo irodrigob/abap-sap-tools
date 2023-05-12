@@ -12,6 +12,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
              order_status_desc TYPE val_text,
              order_type        TYPE trfunction,
              order_type_desc   TYPE val_text,
+             order_has_objects TYPE sap_bool,
              task              TYPE trkorr,
              task_desc         TYPE string,
              task_user         TYPE uname,
@@ -19,6 +20,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
              task_status_desc  TYPE val_text,
              task_type         TYPE trfunction,
              task_type_desc    TYPE val_text,
+             task_has_objects  TYPE sap_bool,
            END OF ts_user_orders.
     TYPES: tt_user_orders TYPE STANDARD TABLE OF ts_user_orders WITH EMPTY KEY.
     TYPES: BEGIN OF ts_systems_transport,
@@ -69,6 +71,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     "! @parameter iv_status_release | <p class="shorttext synchronized">Status liberadas</p>
     "! @parameter iv_release_from_data | <p class="shorttext synchronized">Ordenes liberadas desde</p>
     "! @parameter iv_release_from_to | <p class="shorttext synchronized">Ordenes liberadas desde</p>
+    "! @parameter iv_get_has_objects | <p class="shorttext synchronized">Verificar si tiene objetos</p>
     "! @parameter et_orders | <p class="shorttext synchronized">Ordenes</p>
     METHODS get_user_orders
       IMPORTING
@@ -80,6 +83,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         !iv_status_release    TYPE sap_bool DEFAULT abap_false
         !iv_release_from_data TYPE sy-datum OPTIONAL
         !iv_release_from_to   TYPE sy-datum OPTIONAL
+        !iv_get_has_objects   TYPE sap_bool DEFAULT abap_true
       EXPORTING
         et_orders             TYPE tt_user_orders.
     "! <p class="shorttext synchronized">Sistemas de transporte</p>
@@ -254,7 +258,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
+CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
 
 
   METHOD call_badi_before_release_order.
@@ -749,6 +753,15 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
 
     SORT lt_request BY trfunction as4date DESCENDING as4time DESCENDING.
 
+    IF iv_get_has_objects = abap_true.
+      DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN lt_request ( sign = 'I' option = 'EQ' low = <wa>-trkorr ) ).
+      SELECT trkorr, COUNT( * ) AS obj_numbers INTO TABLE @DATA(lt_order_with_objects)
+             FROM e071
+             WHERE trkorr IN @lt_r_trkorr
+             GROUP BY trkorr
+             ORDER BY trkorr.
+    ENDIF.
+
     " Sacamos las padres para ir obteniendo los hijos
     LOOP AT lt_request ASSIGNING FIELD-SYMBOL(<ls_request>)
                                  WHERE strkorr IS INITIAL.
@@ -771,6 +784,12 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
         CATCH cx_sy_itab_line_not_found.
       ENDTRY.
 
+      IF iv_get_has_objects = abap_true AND line_exists( lt_order_with_objects[ trkorr = <ls_request>-trkorr ] ).
+        ls_orders-order_has_objects = abap_true.
+      ELSE.
+        ls_orders-order_has_objects = abap_false.
+      ENDIF.
+
       " Ahora las tareas de la orden
       LOOP AT lt_request ASSIGNING FIELD-SYMBOL(<ls_tasks>) WHERE strkorr = <ls_request>-trkorr.
         INSERT ls_orders INTO TABLE et_orders ASSIGNING FIELD-SYMBOL(<ls_orders>).
@@ -782,6 +801,11 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
                                              WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
                                              WHEN sctsc_state_released OR sctsc_state_export_started THEN sctsc_state_released ).
 
+        IF iv_get_has_objects = abap_true AND line_exists( lt_order_with_objects[ trkorr = <ls_tasks>-trkorr ] ).
+          <ls_orders>-task_has_objects = abap_true.
+        ELSE.
+          <ls_orders>-task_has_objects = abap_false.
+        ENDIF.
         TRY.
             <ls_orders>-task_status_desc = mo_order_md->get_status_desc( <ls_orders>-task_status ).
           CATCH cx_sy_itab_line_not_found.

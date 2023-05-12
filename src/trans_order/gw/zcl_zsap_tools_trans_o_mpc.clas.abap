@@ -29,6 +29,7 @@ public section.
      ORDER_STATUS_DESC type string,
      ORDER_TYPE type string,
      ORDER_TYPE_DESC type string,
+     ORDER_HAS_OBJECT type FLAG,
      TASK type string,
      TASK_DESC type string,
      TASK_USER type string,
@@ -37,6 +38,7 @@ public section.
      TASK_TYPE type string,
      TASK_TYPE_DESC type string,
      RELEASE_DATE_FROM type DATUM,
+     TASK_HAS_OBJECT type FLAG,
   end of TS_GETUSERSORDERS .
   types:
     TT_GETUSERSORDERS type standard table of TS_GETUSERSORDERS .
@@ -57,6 +59,22 @@ public section.
   end of TS_RELEASEORDER .
   types:
     TT_RELEASEORDER type standard table of TS_RELEASEORDER .
+  types:
+      begin of TS_ORDEROBJECTS,
+     ORDER type TRKORR,
+     AS4POS type DDPOSITION,
+     PGMID type PGMID,
+     OBJECT type TROBJTYPE,
+     OBJECT_DESC type DDTEXT,
+     OBJ_NAME type TROBJ_NAME,
+     OBJFUNC type OBJFUNC,
+     LOCKFLAG type LOCKFLAG,
+     GENNUM type TRGENNUM,
+     LANG type SPRAS,
+     ACTIVITY type TRACTIVITY,
+  end of TS_ORDEROBJECTS .
+  types:
+    TT_ORDEROBJECTS type standard table of TS_ORDEROBJECTS .
   types:
       begin of TS_GETSYSTEMSTRANSPORT,
      SYSTEM_NAME type string,
@@ -84,22 +102,6 @@ public section.
   end of TS_ORDER .
   types:
     TT_ORDER type standard table of TS_ORDER .
-  types:
-      begin of TS_ORDEROBJECTS,
-     ORDER type TRKORR,
-     AS4POS type DDPOSITION,
-     PGMID type PGMID,
-     OBJECT type TROBJTYPE,
-     OBJECT_DESC type DDTEXT,
-     OBJ_NAME type TROBJ_NAME,
-     OBJFUNC type OBJFUNC,
-     LOCKFLAG type LOCKFLAG,
-     GENNUM type TRGENNUM,
-     LANG type SPRAS,
-     ACTIVITY type TRACTIVITY,
-  end of TS_ORDEROBJECTS .
-  types:
-    TT_ORDEROBJECTS type standard table of TS_ORDEROBJECTS .
 
   constants GC_DOTRANSPORTCOPY type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'doTransportCopy' ##NO_TEXT.
   constants GC_GETSYSTEMSTRANSPORT type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'getSystemsTransport' ##NO_TEXT.
@@ -136,6 +138,9 @@ private section.
   methods DEFINE_RELEASEORDER
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_ORDEROBJECTS
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
   methods DEFINE_GETSYSTEMSTRANSPORT
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
@@ -143,9 +148,6 @@ private section.
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
   methods DEFINE_ORDER
-    raising
-      /IWBEP/CX_MGW_MED_EXCEPTION .
-  methods DEFINE_ORDEROBJECTS
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
 ENDCLASS.
@@ -170,10 +172,10 @@ define_complextypes( ).
 define_getusersorders( ).
 define_systemsuser( ).
 define_releaseorder( ).
+define_orderobjects( ).
 define_getsystemstransport( ).
 define_dotransportcopy( ).
 define_order( ).
-define_orderobjects( ).
   endmethod.
 
 
@@ -512,6 +514,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'orderHasObjects' iv_abap_fieldname = 'ORDER_HAS_OBJECT' ). "#EC NOTEXT
+lo_property->set_type_edm_boolean( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'task' iv_abap_fieldname = 'TASK' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
@@ -596,6 +609,17 @@ lo_property->set_updatable( abap_false ).
 lo_property->set_sortable( abap_false ).
 lo_property->set_nullable( abap_true ).
 lo_property->set_filterable( abap_true ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'taskHasObjects' iv_abap_fieldname = 'TASK_HAS_OBJECT' ). "#EC NOTEXT
+lo_property->set_type_edm_boolean( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
 lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
@@ -1052,7 +1076,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230511175420'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230512172331'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.
