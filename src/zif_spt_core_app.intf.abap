@@ -1,7 +1,7 @@
 INTERFACE zif_spt_core_app
   PUBLIC .
   TYPES: BEGIN OF ts_apps_type,
-           app           TYPE zif_spt_core_data=>tv_app,
+           app           TYPE zcl_spt_core_data=>tv_app,
            app_desc      TYPE string,
            service       TYPE string,
            frontend_page TYPE string,

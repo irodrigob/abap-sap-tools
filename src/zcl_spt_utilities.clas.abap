@@ -16,7 +16,7 @@ CLASS zcl_spt_utilities DEFINITION
     "! @parameter rs_return | <p class="shorttext synchronized">Retorno</p>
     CLASS-METHODS fill_return
       IMPORTING
-        !iv_type         TYPE any DEFAULT zif_spt_core_data=>cs_message-type_success
+        !iv_type         TYPE any DEFAULT zcl_spt_core_data=>cs_message-type_success
         !iv_id           TYPE any
         !iv_number       TYPE any
         !iv_message_v1   TYPE any OPTIONAL
@@ -25,7 +25,7 @@ CLASS zcl_spt_utilities DEFINITION
         !iv_message_v4   TYPE any OPTIONAL
         !iv_langu        TYPE sylangu DEFAULT sy-langu
       RETURNING
-        VALUE(rs_return) TYPE zif_spt_core_data=>ts_return .
+        VALUE(rs_return) TYPE zcl_spt_core_data=>ts_return .
     "! <p class="shorttext synchronized">Convierte el idioma en formato ISO en formato SAP</p>
     "! @parameter iv_isolangu | <p class="shorttext synchronized">Idioma ISO</p>
     "! @parameter rv_langu | <p class="shorttext synchronized">Idioma SAP</p>
@@ -55,7 +55,7 @@ CLASS zcl_spt_utilities IMPLEMENTATION.
              WHERE sprsl = @lv_langu
                    AND arbgb = @iv_id.
       IF sy-subrc NE 0.
-        lv_langu = zif_spt_core_data=>cv_default_langu.
+        lv_langu = zcl_spt_core_data=>cv_default_langu.
       ENDIF.
 
     ENDIF.

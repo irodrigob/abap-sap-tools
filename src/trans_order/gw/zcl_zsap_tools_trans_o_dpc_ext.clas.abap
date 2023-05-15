@@ -17,7 +17,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
+CLASS ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT IMPLEMENTATION.
 
 
   METHOD dotransportcopys_get_entityset.
@@ -99,6 +99,18 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
     et_entityset = CORRESPONDING #( lt_orders ).
 
   ENDMETHOD.
+
+
+  METHOD orderobjectsset_get_entityset.
+  CLEAR: et_entityset.
+
+    DATA(lo_order) = NEW zcl_spt_apps_trans_order(  ).
+
+    et_entityset = CORRESPONDING #( lo_order->get_orders_objects( it_orders = VALUE #( FOR <wa> IN it_filter_select_options[ property = 'order' ]-select_options ( CONV trkorr( <wa>-low ) ) ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD orderset_update_entity.
 
     io_data_provider->read_entry_data( IMPORTING es_data = er_entity ).
@@ -109,7 +121,7 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
                                                      is_data   = VALUE #( description = er_entity-description
                                                                           user = er_entity-user ) ).
 
-    IF ls_return-type = zif_spt_core_data=>cs_message-type_error.
+    IF ls_return-type = zcl_spt_core_data=>cs_message-type_error.
       message_container->add_message_text_only(
         EXPORTING
           iv_msg_type               = ls_return-type
@@ -121,11 +133,6 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD systemsuserset_get_entityset.
-
-    et_entityset = NEW zcl_spt_apps_trans_order_md(  )->get_system_users( ).
-
-  ENDMETHOD.
 
   METHOD releaseorderset_get_entityset.
 
@@ -142,13 +149,10 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD orderobjectsset_get_entityset.
-  CLEAR: et_entityset.
 
-    DATA(lo_order) = NEW zcl_spt_apps_trans_order(  ).
+  METHOD systemsuserset_get_entityset.
 
-    et_entityset = CORRESPONDING #( lo_order->get_orders_objects( it_orders = VALUE #( FOR <wa> IN it_filter_select_options[ property = 'order' ]-select_options ( CONV trkorr( <wa>-low ) ) ) ) ).
+    et_entityset = NEW zcl_spt_apps_trans_order_md(  )->get_system_users( ).
 
   ENDMETHOD.
-
 ENDCLASS.

@@ -11,7 +11,7 @@ INTERFACE zif_spt_ex_badi_transport_copy
       iv_order      TYPE trkorr
       is_order_data TYPE trwbo_request
     CHANGING
-      cs_return     TYPE zif_spt_core_data=>ts_return.
+      cs_return     TYPE zcl_spt_core_data=>ts_return.
   "! <p class="shorttext synchronized">Modificación de los usuarios del sistema</p>
   "! @parameter ct_system_user | <p class="shorttext synchronized">Lista de usuarios del sistema</p>
   METHODS change_system_user

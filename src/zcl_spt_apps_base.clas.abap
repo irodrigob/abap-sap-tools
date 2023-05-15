@@ -8,7 +8,7 @@ CLASS zcl_spt_apps_base DEFINITION
 
     TYPES:
       BEGIN OF ts_apps,
-        app           TYPE zif_spt_core_data=>tv_app,
+        app           TYPE zcl_spt_core_data=>tv_app,
         app_desc      TYPE string,
         service       TYPE string,
         frontend_page TYPE string,
@@ -34,12 +34,12 @@ CLASS zcl_spt_apps_base DEFINITION
         !et_app_list TYPE tt_apps .
   PROTECTED SECTION.
     DATA mv_langu TYPE sylangu.
-    DATA mv_app TYPE zif_spt_core_data=>tv_app.
+    DATA mv_app TYPE zcl_spt_core_data=>tv_app.
 
     "! <p class="shorttext synchronized">Establece la aplicación</p>
     "! @parameter iv_app | <p class="shorttext synchronized">Aplication</p>
     METHODS set_app
-      IMPORTING iv_app TYPE zif_spt_core_data=>tv_app.
+      IMPORTING iv_app TYPE zcl_spt_core_data=>tv_app.
   PRIVATE SECTION.
 ENDCLASS.
 
