@@ -68,6 +68,13 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     TYPES:
            END OF ts_return_delete_objects.
     TYPES: tt_return_delete_objects TYPE STANDARD TABLE OF ts_return_delete_objects WITH DEFAULT KEY.
+    TYPES: BEGIN OF ts_delete_orders,
+             order   TYPE trkorr,
+             task    TYPE trkorr,
+             include TYPE zcl_spt_core_data=>ts_return.
+    TYPES:
+           END OF ts_delete_orders.
+    TYPES: tt_delete_orders TYPE STANDARD TABLE OF ts_delete_orders WITH EMPTY KEY.
     METHODS zif_spt_core_app~get_app_type REDEFINITION.
 
 
@@ -172,6 +179,15 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     METHODS delete_order_objects
       IMPORTING it_objects       TYPE tt_input_delete_objects
       RETURNING VALUE(rt_return) TYPE tt_return_delete_objects.
+    "! <p class="shorttext synchronized">Borrado de ordenes y tareas</p>
+    "! @parameter it_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
+    "! @parameter iv_include_objects | <p class="shorttext synchronized">Incluir objetos</p>
+    "! @parameter et_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS delete_orders
+      IMPORTING
+                iv_include_objects TYPE sap_bool DEFAULT abap_true
+                it_orders          TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING VALUE(et_return)   TYPE tt_delete_orders.
   PROTECTED SECTION.
     TYPES tt_objects_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY.
     DATA mt_orders_data TYPE zcl_spt_trans_order_data=>tt_orders_data.
@@ -267,8 +283,15 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     METHODS read_object_texts
       RETURNING
         VALUE(rt_object_text) TYPE tt_objects_texts.
-
-
+    "! <p class="shorttext synchronized">Borrado de orden/tarea</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter iv_include_objects | <p class="shorttext synchronized">Incluir objetos</p>
+    "! @parameter rs_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS delete_order
+      IMPORTING
+                iv_order           TYPE e070-trkorr
+                iv_include_objects TYPE sap_bool DEFAULT abap_true
+      RETURNING VALUE(rs_return)   TYPE zcl_spt_core_data=>ts_return .
 
   PRIVATE SECTION.
 
@@ -1231,6 +1254,51 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
       ENDLOOP.
 
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD delete_orders.
+    CLEAR: et_return.
+
+    " Buscamos las ordenes/tareas filtrando las que no esten liberadas. En el caso de ordenes se aprovecha
+    " para buscar sus tareas
+    DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN it_orders ( sign = 'I' option = 'EQ' low = <wa> ) ).
+    SELECT trkorr, strkorr
+           FROM e070
+           WHERE trkorr IN @lt_r_trkorr
+    UNION
+    SELECT trkorr, strkorr
+           FROM e070
+           WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
+                 AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
+                 AND strkorr IN @lt_r_trkorr
+          INTO TABLE @DATA(lt_orders).
+    IF sy-subrc = 0.
+
+      LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
+        DATA(lv_tabix_order) = sy-tabix.
+
+        LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_task>) WHERE strkorr = <ls_orders>-trkorr.
+          DATA(lv_tabix_task) = sy-tabix.
+          delete_order( iv_order = <ls_task>-trkorr ).
+          "            DELETE lt_orders INDEX lv_tabix_task. " Quitamos la tarea para que no se procese de nuevo
+        ENDLOOP.
+
+
+        "          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
+
+        "          DELETE lt_orders INDEX lv_tabix_order. " Quitamos la tarea para que no se procese de nuevo
+      ENDLOOP.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD delete_order.
+
+    CLEAR: rs_return.
+
+
   ENDMETHOD.
 
 ENDCLASS.

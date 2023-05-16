@@ -66,12 +66,13 @@ public section.
      PGMID type PGMID,
      OBJECT type TROBJTYPE,
      OBJECT_DESC type DDTEXT,
-     OBJ_NAME type TROBJ_NAME,
+     OBJ_NAME type string,
      OBJFUNC type OBJFUNC,
      LOCKFLAG type LOCKFLAG,
      GENNUM type TRGENNUM,
      LANG type SPRAS,
      ACTIVITY type TRACTIVITY,
+     RETURN type RETURN,
   end of TS_ORDEROBJECTS .
   types:
     TT_ORDEROBJECTS type standard table of TS_ORDEROBJECTS .
@@ -878,6 +879,9 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
+lo_complex_type = lo_entity_type->create_complex_property( iv_property_name = 'return'
+                                                           iv_complex_type_name = 'return'
+                                                           iv_abap_fieldname    = 'RETURN' ). "#EC NOTEXT
 
 lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_ORDEROBJECTS' ). "#EC NOTEXT
 
@@ -1076,7 +1080,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230512172331'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230516194826'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.

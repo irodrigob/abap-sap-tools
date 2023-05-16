@@ -12,6 +12,7 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
     METHODS systemsuserset_get_entityset REDEFINITION.
     METHODS releaseorderset_get_entityset REDEFINITION.
     methods orderobjectsset_get_entityset REDEFINITION.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -155,4 +156,6 @@ CLASS ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT IMPLEMENTATION.
     et_entityset = NEW zcl_spt_apps_trans_order_md(  )->get_system_users( ).
 
   ENDMETHOD.
+
+
 ENDCLASS.
