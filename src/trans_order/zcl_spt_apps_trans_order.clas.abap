@@ -69,9 +69,9 @@ CLASS zcl_spt_apps_trans_order DEFINITION
            END OF ts_return_delete_objects.
     TYPES: tt_return_delete_objects TYPE STANDARD TABLE OF ts_return_delete_objects WITH DEFAULT KEY.
     TYPES: BEGIN OF ts_delete_orders,
-             order   TYPE trkorr,
-             task    TYPE trkorr,
-             include TYPE zcl_spt_core_data=>ts_return.
+             order TYPE trkorr,
+             task  TYPE trkorr.
+        INCLUDE TYPE zcl_spt_core_data=>ts_return.
     TYPES:
            END OF ts_delete_orders.
     TYPES: tt_delete_orders TYPE STANDARD TABLE OF ts_delete_orders WITH EMPTY KEY.
@@ -181,13 +181,10 @@ CLASS zcl_spt_apps_trans_order DEFINITION
       RETURNING VALUE(rt_return) TYPE tt_return_delete_objects.
     "! <p class="shorttext synchronized">Borrado de ordenes y tareas</p>
     "! @parameter it_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
-    "! @parameter iv_include_objects | <p class="shorttext synchronized">Incluir objetos</p>
     "! @parameter et_return | <p class="shorttext synchronized">Resultado del proceso</p>
     METHODS delete_orders
-      IMPORTING
-                iv_include_objects TYPE sap_bool DEFAULT abap_true
-                it_orders          TYPE zcl_spt_trans_order_data=>tt_orders
-      RETURNING VALUE(et_return)   TYPE tt_delete_orders.
+      IMPORTING it_orders        TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING VALUE(rt_return) TYPE tt_delete_orders.
   PROTECTED SECTION.
     TYPES tt_objects_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY.
     DATA mt_orders_data TYPE zcl_spt_trans_order_data=>tt_orders_data.
@@ -283,15 +280,13 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     METHODS read_object_texts
       RETURNING
         VALUE(rt_object_text) TYPE tt_objects_texts.
-    "! <p class="shorttext synchronized">Borrado de orden/tarea</p>
-    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
-    "! @parameter iv_include_objects | <p class="shorttext synchronized">Incluir objetos</p>
-    "! @parameter rs_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    "! <p class="shorttext synchronized">Borrado de una orden o tarea</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
+    "! @parameter es_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    "! @parameter et_deleted_task | <p class="shorttext synchronized">Tareas borradas</p>
     METHODS delete_order
-      IMPORTING
-                iv_order           TYPE e070-trkorr
-                iv_include_objects TYPE sap_bool DEFAULT abap_true
-      RETURNING VALUE(rs_return)   TYPE zcl_spt_core_data=>ts_return .
+      IMPORTING iv_order         TYPE trkorr
+      RETURNING VALUE(rt_return) TYPE tt_delete_orders.
 
   PRIVATE SECTION.
 
@@ -1090,7 +1085,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
                                                                         iv_message_v2 = lv_msgv2
                                                                         iv_message_v3 = lv_msgv3
                                                                         iv_message_v4 = lv_msgv4
-                                                                        iv_langu      = mv_langu )-message ).
+                                                                        iv_langu      = sy-langu )-message ).
         ENDIF.
       ENDIF.
 
@@ -1257,10 +1252,10 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD delete_orders.
-    CLEAR: et_return.
+    DATA lt_deleted_tasks TYPE cts_trkorrs.
 
-    " Buscamos las ordenes/tareas filtrando las que no esten liberadas. En el caso de ordenes se aprovecha
-    " para buscar sus tareas
+    CLEAR: rt_return.
+
     DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN it_orders ( sign = 'I' option = 'EQ' low = <wa> ) ).
     SELECT trkorr, strkorr
            FROM e070
@@ -1268,36 +1263,110 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
     UNION
     SELECT trkorr, strkorr
            FROM e070
-           WHERE trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released
-                 AND trstatus NE @zcl_spt_trans_order_data=>cs_orders-status-released_repaired
-                 AND strkorr IN @lt_r_trkorr
+           WHERE strkorr IN @lt_r_trkorr
           INTO TABLE @DATA(lt_orders).
-    IF sy-subrc = 0.
 
-      LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
-        DATA(lv_tabix_order) = sy-tabix.
+    " Primero vamos a borrar las ordenes porque la función de SAP ya borra las tareas asociadas a la orden, y los objetos de las tareas
+    LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
+      DATA(lv_tabix_order) = sy-tabix.
 
-        LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_task>) WHERE strkorr = <ls_orders>-trkorr.
-          DATA(lv_tabix_task) = sy-tabix.
-          delete_order( iv_order = <ls_task>-trkorr ).
-          "            DELETE lt_orders INDEX lv_tabix_task. " Quitamos la tarea para que no se procese de nuevo
-        ENDLOOP.
+      DATA(lt_return_order) = delete_order( EXPORTING iv_order = <ls_orders>-trkorr ).
+      INSERT LINES OF lt_return_order INTO TABLE rt_return.
 
+      " Quito las tareas de la orden porque el método de borrado las devuelve en la tabla
+      DELETE lt_orders WHERE strkorr = <ls_orders>-trkorr.
+      DELETE lt_orders INDEX lv_tabix_order.
 
-        "          <ls_return> = CORRESPONDING #( BASE ( <ls_return> ) ls_return_task ).
-
-        "          DELETE lt_orders INDEX lv_tabix_order. " Quitamos la tarea para que no se procese de nuevo
-      ENDLOOP.
-
-    ENDIF.
+    ENDLOOP.
+    " Ahora borramos las tareas
+    LOOP AT lt_orders ASSIGNING <ls_orders>.
+      DATA(lt_return_task) = delete_order( EXPORTING iv_order = <ls_orders>-trkorr ).
+      INSERT LINES OF lt_return_task INTO TABLE rt_return.
+    ENDLOOP.
 
   ENDMETHOD.
 
 
   METHOD delete_order.
+    DATA lt_deleted_task TYPE cts_trkorrs .
 
-    CLEAR: rs_return.
+    CLEAR: rt_return.
 
+    CALL FUNCTION 'TRINT_DELETE_COMM'
+      EXPORTING
+        wi_dialog                     = abap_false
+        wi_trkorr                     = iv_order
+        iv_without_any_checks         = abap_true " Borra da igual si hay tareas liberadas
+      IMPORTING
+        et_deleted_tasks              = lt_deleted_task
+      EXCEPTIONS
+        file_access_error             = 1
+        order_already_released        = 2
+        order_contains_c_member       = 3
+        order_contains_locked_entries = 4
+        order_is_refered              = 5
+        repair_order                  = 6
+        user_not_owner                = 7
+        delete_was_cancelled          = 8
+        objects_free_but_still_locks  = 9
+        order_lock_failed             = 10
+        wrong_client                  = 11
+        project_still_referenced      = 12
+        successors_already_released   = 13
+        OTHERS                        = 14.
+
+    IF sy-subrc = 0.
+      INSERT VALUE #( order = iv_order
+                      type = zcl_spt_core_data=>cs_message-type_success
+                      message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                          iv_number = '013'
+                                                                          iv_message_v1 = iv_order
+                                                                          iv_langu      = mv_langu )-message  ) INTO TABLE rt_return.
+
+      " Añado las tareas borradas si se esta borrando una orden
+      LOOP AT lt_deleted_task ASSIGNING FIELD-SYMBOL(<ls_deleted_task>).
+        INSERT VALUE #( order = iv_order
+                        task = <ls_deleted_task>-trkorr
+                        type = zcl_spt_core_data=>cs_message-type_success
+                        message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                  iv_number = '014'
+                                                                  iv_message_v1 = <ls_deleted_task>-trkorr
+                                                                  iv_langu      = mv_langu )-message  ) INTO TABLE rt_return.
+      ENDLOOP.
+
+    ELSE.
+
+      DATA(lv_msgno) = sy-msgno.
+      DATA(lv_msgid) = sy-msgid.
+      DATA(lv_msgv1) = sy-msgv1.
+      DATA(lv_msgv2) = sy-msgv2.
+      DATA(lv_msgv3) = sy-msgv3.
+      DATA(lv_msgv4) = sy-msgv4.
+
+      DATA(lv_message) = zcl_spt_utilities=>fill_return( iv_id = sy-msgid
+                                                          iv_number = sy-msgno
+                                                          iv_message_v1 = sy-msgv1
+                                                          iv_message_v2 = sy-msgv2
+                                                          iv_message_v3 = sy-msgv3
+                                                          iv_message_v4 = sy-msgv4
+                                                          iv_langu      = mv_langu )-message.
+
+      " Para los mensajes estándar si no hay texto mensaje y el idioma global difiere al idioma
+      " de conexión entonces saco el mensae en el idioma de logon.
+      IF lv_message IS INITIAL AND mv_langu NE sy-langu.
+        lv_message = zcl_spt_utilities=>fill_return( iv_id = lv_msgid
+                                                     iv_number = lv_msgno
+                                                     iv_message_v1 = lv_msgv1
+                                                     iv_message_v2 = lv_msgv2
+                                                     iv_message_v3 = lv_msgv3
+                                                     iv_message_v4 = lv_msgv4
+                                                     iv_langu      = sy-langu )-message.
+      ENDIF.
+
+      INSERT VALUE #( order = iv_order
+                     type = zcl_spt_core_data=>cs_message-type_error
+                     message = lv_message  ) INTO TABLE rt_return.
+    ENDIF.
 
   ENDMETHOD.
 

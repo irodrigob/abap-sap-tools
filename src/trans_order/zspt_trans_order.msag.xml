@@ -80,6 +80,24 @@
      <MSGNR>011</MSGNR>
      <TEXT>Object &amp; &amp; &amp; deleted successfully</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>012</MSGNR>
+     <TEXT>Errors occurred while deleting order/task objects</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>013</MSGNR>
+     <TEXT>Order &amp; deleted correctly</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>014</MSGNR>
+     <TEXT>Task &amp; deleted correctly</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>
