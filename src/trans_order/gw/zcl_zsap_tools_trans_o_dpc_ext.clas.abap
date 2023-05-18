@@ -11,14 +11,15 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
     METHODS orderset_update_entity REDEFINITION.
     METHODS systemsuserset_get_entityset REDEFINITION.
     METHODS releaseorderset_get_entityset REDEFINITION.
-    methods orderobjectsset_get_entityset REDEFINITION.
+    METHODS orderobjectsset_get_entityset REDEFINITION.
+    METHODS deleteordersset_get_entityset REDEFINITION.
 
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT IMPLEMENTATION.
+CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
 
 
   METHOD dotransportcopys_get_entityset.
@@ -103,7 +104,7 @@ CLASS ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT IMPLEMENTATION.
 
 
   METHOD orderobjectsset_get_entityset.
-  CLEAR: et_entityset.
+    CLEAR: et_entityset.
 
     DATA(lo_order) = NEW zcl_spt_apps_trans_order(  ).
 
@@ -157,5 +158,23 @@ CLASS ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD deleteordersset_get_entityset.
+
+    " NOTA IRB: Sé que es un servicio de lectura y no de borrado. Pero me permite pasar "n" ordenes a borrar y
+    " no tener que lanzar el servicio "n" veces. Esto me permite simplifca la parte frontend.
+
+    CLEAR: et_entityset.
+
+    DATA(lo_order) = NEW zcl_spt_apps_trans_order(  ).
+
+    DATA(lt_return) = lo_order->delete_orders( it_orders  = VALUE #( FOR <wa> IN it_filter_select_options[ property = 'order' ]-select_options ( CONV trkorr( <wa>-low ) ) ) ).
+
+    LOOP AT lt_return ASSIGNING FIELD-SYMBOL(<ls_return>).
+      INSERT CORRESPONDING #( <ls_return> ) INTO TABLE et_entityset ASSIGNING FIELD-SYMBOL(<ls_entityset>).
+      <ls_entityset>-return = CORRESPONDING #( <ls_return> ).
+    ENDLOOP.
+
+  ENDMETHOD.
 
 ENDCLASS.
