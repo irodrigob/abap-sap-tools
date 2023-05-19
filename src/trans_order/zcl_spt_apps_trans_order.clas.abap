@@ -1265,25 +1265,30 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
            FROM e070
            WHERE strkorr IN @lt_r_trkorr
           INTO TABLE @DATA(lt_orders).
+    IF sy-subrc = 0.
+      " Primero vamos a borrar las ordenes porque la función de SAP ya borra las tareas asociadas a la orden y los objetos de las tareas
+      LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
+        DATA(lv_tabix_order) = sy-tabix.
 
-    " Primero vamos a borrar las ordenes porque la función de SAP ya borra las tareas asociadas a la orden, y los objetos de las tareas
-    LOOP AT lt_orders ASSIGNING FIELD-SYMBOL(<ls_orders>) WHERE strkorr IS INITIAL.
-      DATA(lv_tabix_order) = sy-tabix.
+        DATA(lt_return_order) = delete_order( EXPORTING iv_order = <ls_orders>-trkorr ).
+        INSERT LINES OF lt_return_order INTO TABLE rt_return.
 
-      DATA(lt_return_order) = delete_order( EXPORTING iv_order = <ls_orders>-trkorr ).
-      INSERT LINES OF lt_return_order INTO TABLE rt_return.
+        " Quito las tareas de la orden porque el método de borrado las devuelve en la tabla
+        DELETE lt_orders WHERE strkorr = <ls_orders>-trkorr.
+        DELETE lt_orders INDEX lv_tabix_order.
 
-      " Quito las tareas de la orden porque el método de borrado las devuelve en la tabla
-      DELETE lt_orders WHERE strkorr = <ls_orders>-trkorr.
-      DELETE lt_orders INDEX lv_tabix_order.
-
-    ENDLOOP.
-    " Ahora borramos las tareas
-    LOOP AT lt_orders ASSIGNING <ls_orders>.
-      DATA(lt_return_task) = delete_order( EXPORTING iv_order = <ls_orders>-trkorr ).
-      INSERT LINES OF lt_return_task INTO TABLE rt_return.
-    ENDLOOP.
-
+      ENDLOOP.
+      " Ahora borramos las tareas
+      LOOP AT lt_orders ASSIGNING <ls_orders>.
+        DATA(lt_return_task) = delete_order( EXPORTING iv_order = <ls_orders>-trkorr ).
+        INSERT LINES OF lt_return_task INTO TABLE rt_return.
+      ENDLOOP.
+    ELSE.
+      INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                      message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                iv_number = '010'
+                                                                iv_langu = mv_langu )-message ) INTO TABLE rt_return.
+    ENDIF.
   ENDMETHOD.
 
 
