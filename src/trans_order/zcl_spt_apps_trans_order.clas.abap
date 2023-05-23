@@ -814,8 +814,8 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
       ENDTRY.
 
       ls_orders-order_status = SWITCH #( <ls_request>-trstatus
-                                             WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
-                                             WHEN sctsc_state_released OR sctsc_state_export_started THEN sctsc_state_released ).
+                                         WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
+                                         ELSE <ls_request>-trstatus ).
       TRY.
           ls_orders-order_status_desc =  mo_order_md->get_status_desc( ls_orders-order_status ).
         CATCH cx_sy_itab_line_not_found.
