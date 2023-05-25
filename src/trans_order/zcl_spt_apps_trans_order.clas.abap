@@ -4,7 +4,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-    TYPES: BEGIN OF ts_user_orders,
+    TYPES: BEGIN OF ts_orders_task_data,
              order             TYPE trkorr,
              order_desc        TYPE string,
              order_user        TYPE uname,
@@ -21,8 +21,8 @@ CLASS zcl_spt_apps_trans_order DEFINITION
              task_type         TYPE trfunction,
              task_type_desc    TYPE val_text,
              task_has_objects  TYPE sap_bool,
-           END OF ts_user_orders.
-    TYPES: tt_user_orders TYPE STANDARD TABLE OF ts_user_orders WITH EMPTY KEY.
+           END OF ts_orders_task_data.
+    TYPES: tt_orders_task_data TYPE STANDARD TABLE OF ts_orders_task_data WITH EMPTY KEY.
     TYPES: BEGIN OF ts_systems_transport,
              system_name TYPE sysname,
              system_desc TYPE string,
@@ -105,7 +105,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         !iv_release_from_to   TYPE sy-datum OPTIONAL
         !iv_get_has_objects   TYPE sap_bool DEFAULT abap_true
       EXPORTING
-        et_orders             TYPE tt_user_orders.
+        et_orders             TYPE tt_orders_task_data.
     "! <p class="shorttext synchronized">Sistemas de transporte</p>
     "! @parameter rt_systems | <p class="shorttext synchronized">Sistemas</p>
     METHODS get_systems_transport
@@ -185,6 +185,25 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     METHODS delete_orders
       IMPORTING it_orders        TYPE zcl_spt_trans_order_data=>tt_orders
       RETURNING VALUE(rt_return) TYPE tt_delete_orders.
+    "! <p class="shorttext synchronized">Creación de orden y su tarea</p>
+    "! @parameter iv_type | <p class="shorttext synchronized">Tipo de orden</p>
+    "! @parameter iv_system | <p class="shorttext synchronized">Sistema</p>
+    "! @parameter iv_description | <p class="shorttext synchronized">Descripción</p>
+    "! @parameter iv_user | <p class="shorttext synchronized">Usuario</p>
+    "! @parameter iv_user | <p class="shorttext synchronized">Usuario</p>
+    "! @parameter it_users | <p class="shorttext synchronized">Usuarios de las tareas</p>
+    "! @parameter ev_order | <p class="shorttext synchronized">Orden creada</p>
+    METHODS create_order_and_task
+      IMPORTING
+        iv_type        TYPE trfunction
+        iv_description TYPE string
+        iv_system      TYPE sysname OPTIONAL
+        iv_user        TYPE syuname DEFAULT sy-uname
+        it_users_task  TYPE zcl_spt_trans_order_data=>tt_users  OPTIONAL
+      EXPORTING
+        es_return      TYPE zcl_spt_core_data=>ts_return
+        ev_order       TYPE trkorr
+        et_order_data  TYPE tt_orders_task_data.
   PROTECTED SECTION.
     TYPES tt_objects_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY.
     DATA mt_orders_data TYPE zcl_spt_trans_order_data=>tt_orders_data.
@@ -218,17 +237,21 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     "! @parameter iv_system | <p class="shorttext synchronized">Sistema</p>
     "! @parameter iv_description | <p class="shorttext synchronized">Descripción</p>
     "! @parameter iv_user | <p class="shorttext synchronized">Usuario</p>
-    "! @parameter es_return | <p class="shorttext synchronized">Retorno de la creación</p>
+    "! @parameter iv_user | <p class="shorttext synchronized">Usuario</p>
+    "! @parameter iv_get_order_data | <p class="shorttext synchronized">Se devuelve los datos de la orden creada</p>
     "! @parameter ev_order | <p class="shorttext synchronized">Orden creada</p>
     METHODS create_order
       IMPORTING
-        iv_type        TYPE trfunction
-        iv_description TYPE string
-        iv_system      TYPE sysname OPTIONAL
-        iv_user        TYPE syuname DEFAULT sy-uname
+        iv_type           TYPE trfunction
+        iv_description    TYPE string
+        iv_system         TYPE sysname OPTIONAL
+        iv_user           TYPE syuname DEFAULT sy-uname
+        iv_get_order_data TYPE sap_bool DEFAULT abap_false
       EXPORTING
-        es_return      TYPE zcl_spt_core_data=>ts_return
-        ev_order       TYPE trkorr.
+        es_return         TYPE zcl_spt_core_data=>ts_return
+        ev_order          TYPE trkorr
+        es_order_data     TYPE ts_orders_task_data.
+
     "! <p class="shorttext synchronized">Copia el contenido de unas ordenes a otra orden</p>
     "! @parameter it_from_orders | <p class="shorttext synchronized">Ordenes origen</p>
     "! @parameter iv_to_order | <p class="shorttext synchronized">Orden destino</p>
@@ -246,18 +269,37 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         it_orders TYPE zcl_spt_trans_order_data=>tt_orders
       EXPORTING
         et_return TYPE zcl_spt_core_data=>tt_return.
-    "! <p class="shorttext synchronized">Lectura de datos de una orden</p>
+    "! <p class="shorttext synchronized">Lectura de datos completos de una orden</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
     "! @parameter iv_read_objects | <p class="shorttext synchronized">Obtener objetos de la orden</p>
     "! @parameter rs_data | <p class="shorttext synchronized">Datos del orden</p>
-    METHODS read_request
+    METHODS read_request_complete
       IMPORTING
                 iv_order        TYPE trkorr
                 iv_read_objects TYPE sap_bool DEFAULT abap_false
       RETURNING
                 VALUE(rs_data)  TYPE trwbo_request
       RAISING   zcx_spt_trans_order.
-
+    "! <p class="shorttext synchronized">Lectura de datos una orden</p>
+    "! Solo se devuelve la información de cabecera
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter rs_data | <p class="shorttext synchronized">Datos del orden</p>
+    METHODS read_request
+      IMPORTING
+                iv_order       TYPE trkorr
+      RETURNING
+                VALUE(rs_data) TYPE trwbo_request_header
+      RAISING   zcx_spt_trans_order.
+    "! <p class="shorttext synchronized">Lectura de datos de la orden y sus tareas</p>
+    "! Solo se devuelve la información de cabecera
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter rt_data | <p class="shorttext synchronized">Datos del orden</p>
+    METHODS read_request_and_task
+      IMPORTING
+                iv_order       TYPE trkorr
+      RETURNING
+                VALUE(rt_data) TYPE trwbo_request_headers
+      RAISING   zcx_spt_trans_order.
     "! <p class="shorttext synchronized">Lectura de los datos de las ordenes</p>
     "! @parameter it_orders | <p class="shorttext synchronized">Ordenes</p>
     "! @parameter rt_return | <p class="shorttext synchronized">Resultado del proceso</p>
@@ -287,6 +329,16 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     METHODS delete_order
       IMPORTING iv_order         TYPE trkorr
       RETURNING VALUE(rt_return) TYPE tt_delete_orders.
+    "! <p class="shorttext synchronized">Convierte cabecera de la orden al formato de la aplicacion</p>
+    "! @parameter it_request | <p class="shorttext synchronized">Datos de la orden</p>
+    "! @parameter iv_get_has_objects | <p class="shorttext synchronized">Verificar si tiene objetos</p>
+    "! @parameter rt_order_data | <p class="shorttext synchronized">Datos convertidos</p>
+    METHODS convert_req_header
+      IMPORTING
+        it_request           TYPE trwbo_request_headers
+        iv_get_has_objects   TYPE sap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(rt_order_data) TYPE zcl_spt_apps_trans_order=>tt_orders_task_data.
 
   PRIVATE SECTION.
 
@@ -304,7 +356,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
     IF mo_handle_badi_transport_copy IS BOUND.
 
       TRY.
-          DATA(ls_data) = read_request( iv_order ).
+          DATA(ls_data) = read_request_complete( iv_order ).
 
         CATCH zcx_spt_trans_order INTO DATA(lo_excep).
       ENDTRY.
@@ -385,7 +437,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
           " Si la tengo en la tabla global uso sus valores, en caso contrario los busco.
           READ TABLE mt_orders_data INTO DATA(ls_order_data) WITH KEY h-trkorr = <ls_orders>.
           IF sy-subrc NE 0.
-            ls_order_data = read_request( <ls_orders> ).
+            ls_order_data = read_request_complete( <ls_orders> ).
           ENDIF.
 
           DATA(ls_e070) = CORRESPONDING e070( ls_order_data-h ).
@@ -458,7 +510,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
 
   METHOD create_order.
 
-    CLEAR: es_return.
+    CLEAR: es_return, ev_order, es_order_data.
 
     DATA(lv_order_text) = CONV e07t-as4text( iv_description ).
 
@@ -466,7 +518,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
       EXPORTING
         wi_kurztext   = lv_order_text
         wi_trfunction = iv_type
-        iv_username   = sy-uname
+        iv_username   = iv_user
         iv_tarsystem  = iv_system
         wi_client     = sy-mandt
       IMPORTING
@@ -480,6 +532,11 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
                                                                            iv_number = '002'
                                                                            iv_message_v1 = ev_order
                                                                            iv_langu      = mv_langu )-message ).
+
+      IF iv_get_order_data = abap_true.
+        DATA(lt_order_data) = convert_req_header( VALUE #( ( read_request( ev_order ) ) ) ).
+        es_order_data = lt_order_data[ 1 ].
+      ENDIF.
     ELSE.
 
       es_return = VALUE #( type = zcl_spt_core_data=>cs_message-type_error
@@ -673,7 +730,7 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
     LOOP AT it_orders ASSIGNING FIELD-SYMBOL(<ls_orders>).
 
       TRY.
-          DATA(ls_data) = read_request( <ls_orders> ).
+          DATA(ls_data) = read_request_complete( <ls_orders> ).
 
           INSERT ls_data INTO TABLE mt_orders_data.
 
@@ -790,75 +847,10 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
 
     SORT lt_request BY trfunction as4date DESCENDING as4time DESCENDING.
 
-    IF iv_get_has_objects = abap_true.
-      DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN lt_request ( sign = 'I' option = 'EQ' low = <wa>-trkorr ) ).
-      SELECT trkorr, COUNT( * ) AS obj_numbers INTO TABLE @DATA(lt_order_with_objects)
-             FROM e071
-             WHERE trkorr IN @lt_r_trkorr
-             GROUP BY trkorr
-             ORDER BY trkorr.
-    ENDIF.
+    et_orders = convert_req_header( it_request = lt_request
+                                    iv_get_has_objects = iv_get_has_objects ).
 
-    " Sacamos las padres para ir obteniendo los hijos
-    LOOP AT lt_request ASSIGNING FIELD-SYMBOL(<ls_request>)
-                                 WHERE strkorr IS INITIAL.
 
-      " Relleno los campos base de la orden
-      DATA(ls_orders) = VALUE ts_user_orders( order = <ls_request>-trkorr
-                                              order_user = <ls_request>-as4user
-                                              order_desc = <ls_request>-as4text
-                                              order_type = <ls_request>-trfunction ).
-      TRY.
-          ls_orders-order_type_desc =  mo_order_md->get_function_desc( <ls_request>-trfunction ).
-        CATCH cx_sy_itab_line_not_found.
-      ENDTRY.
-
-      ls_orders-order_status = SWITCH #( <ls_request>-trstatus
-                                         WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
-                                         ELSE <ls_request>-trstatus ).
-      TRY.
-          ls_orders-order_status_desc =  mo_order_md->get_status_desc( ls_orders-order_status ).
-        CATCH cx_sy_itab_line_not_found.
-      ENDTRY.
-
-      IF iv_get_has_objects = abap_true AND line_exists( lt_order_with_objects[ trkorr = <ls_request>-trkorr ] ).
-        ls_orders-order_has_objects = abap_true.
-      ELSE.
-        ls_orders-order_has_objects = abap_false.
-      ENDIF.
-
-      " Ahora las tareas de la orden
-      LOOP AT lt_request ASSIGNING FIELD-SYMBOL(<ls_tasks>) WHERE strkorr = <ls_request>-trkorr.
-        INSERT ls_orders INTO TABLE et_orders ASSIGNING FIELD-SYMBOL(<ls_orders>).
-        <ls_orders>-task = <ls_tasks>-trkorr.
-        <ls_orders>-task_desc = <ls_tasks>-as4text.
-        <ls_orders>-task_user = <ls_tasks>-as4user.
-        <ls_orders>-task_type = <ls_tasks>-trfunction.
-        <ls_orders>-task_status = SWITCH #( <ls_tasks>-trstatus
-                                             WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
-                                             WHEN sctsc_state_released OR sctsc_state_export_started THEN sctsc_state_released ).
-
-        IF iv_get_has_objects = abap_true AND line_exists( lt_order_with_objects[ trkorr = <ls_tasks>-trkorr ] ).
-          <ls_orders>-task_has_objects = abap_true.
-        ELSE.
-          <ls_orders>-task_has_objects = abap_false.
-        ENDIF.
-        TRY.
-            <ls_orders>-task_status_desc = mo_order_md->get_status_desc( <ls_orders>-task_status ).
-          CATCH cx_sy_itab_line_not_found.
-        ENDTRY.
-
-        TRY.
-            <ls_orders>-task_type_desc = mo_order_md->get_function_desc( <ls_tasks>-trfunction ).
-          CATCH cx_sy_itab_line_not_found.
-        ENDTRY.
-
-      ENDLOOP.
-      IF sy-subrc NE 0.
-        INSERT ls_orders INTO TABLE et_orders.
-      ENDIF.
-
-    ENDLOOP.
 
   ENDMETHOD.
 
@@ -881,7 +873,9 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD read_request.
+  METHOD read_request_complete.
+
+    CLEAR: rs_data.
 
     rs_data-h-trkorr = iv_order.
 
@@ -1103,11 +1097,13 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
     TRY.
 
         " Primero leemos los datos de la orden
+
         DATA(ls_data) = read_request( iv_order ).
+
 
         " Si el usuario que viene por parámetro no es tán blanco y es diferente al que tiene lo modifico.
         DATA(lv_user_changed) = abap_false.
-        IF is_data-user IS NOT INITIAL AND is_data-user NE ls_data-h-as4user.
+        IF is_data-user IS NOT INITIAL AND is_data-user NE ls_data-as4user.
           lv_user_changed = abap_true.
           DATA(ls_return_change) = change_user_order( iv_user  = is_data-user
                                          iv_order = iv_order ).
@@ -1119,17 +1115,17 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
         ENDIF.
 
         " Datos cabecera
-        ls_e070 = ls_data-h.
+        ls_e070 = CORRESPONDING #( ls_data ).
 
         " Descripción
         ls_e07t-trkorr = ls_e070-trkorr.
         ls_e07t-langu = mv_langu.
-        ls_e07t-as4text = ls_data-h-as4text.
+        ls_e07t-as4text = ls_data-as4text.
 
         DATA(lv_change_header) = abap_false.
 
         " Si viene descripción y es distinta a la que tiene
-        IF is_data-description IS NOT INITIAL AND is_data-description NE ls_data-h-as4text.
+        IF is_data-description IS NOT INITIAL AND is_data-description NE ls_data-as4text.
           lv_change_header = abap_true.
           ls_e07t-as4text = is_data-description.
         ENDIF.
@@ -1371,6 +1367,218 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
       INSERT VALUE #( order = iv_order
                      type = zcl_spt_core_data=>cs_message-type_error
                      message = lv_message  ) INTO TABLE rt_return.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD convert_req_header.
+    IF iv_get_has_objects = abap_true.
+      DATA(lt_r_trkorr) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN it_request ( sign = 'I' option = 'EQ' low = <wa>-trkorr ) ).
+      SELECT trkorr, COUNT( * ) AS obj_numbers INTO TABLE @DATA(lt_order_with_objects)
+             FROM e071
+             WHERE trkorr IN @lt_r_trkorr
+             GROUP BY trkorr
+             ORDER BY trkorr.
+    ENDIF.
+
+    " Sacamos las padres para ir obteniendo los hijos
+    LOOP AT it_request ASSIGNING FIELD-SYMBOL(<ls_request>)
+                                 WHERE strkorr IS INITIAL.
+
+      " Relleno los campos base de la orden
+      DATA(ls_orders) = VALUE ts_orders_task_data( order = <ls_request>-trkorr
+                                              order_user = <ls_request>-as4user
+                                              order_desc = <ls_request>-as4text
+                                              order_type = <ls_request>-trfunction ).
+      TRY.
+          ls_orders-order_type_desc =  mo_order_md->get_function_desc( <ls_request>-trfunction ).
+        CATCH cx_sy_itab_line_not_found.
+      ENDTRY.
+
+      ls_orders-order_status = SWITCH #( <ls_request>-trstatus
+                                         WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
+                                         ELSE <ls_request>-trstatus ).
+      TRY.
+          ls_orders-order_status_desc =  mo_order_md->get_status_desc( ls_orders-order_status ).
+        CATCH cx_sy_itab_line_not_found.
+      ENDTRY.
+
+      IF iv_get_has_objects = abap_true AND line_exists( lt_order_with_objects[ trkorr = <ls_request>-trkorr ] ).
+        ls_orders-order_has_objects = abap_true.
+      ELSE.
+        ls_orders-order_has_objects = abap_false.
+      ENDIF.
+
+      " Ahora las tareas de la orden
+      LOOP AT it_request ASSIGNING FIELD-SYMBOL(<ls_tasks>) WHERE strkorr = <ls_request>-trkorr.
+        INSERT ls_orders INTO TABLE rt_order_data ASSIGNING FIELD-SYMBOL(<ls_orders>).
+        <ls_orders>-task = <ls_tasks>-trkorr.
+        <ls_orders>-task_desc = <ls_tasks>-as4text.
+        <ls_orders>-task_user = <ls_tasks>-as4user.
+        <ls_orders>-task_type = <ls_tasks>-trfunction.
+        <ls_orders>-task_status = SWITCH #( <ls_tasks>-trstatus
+                                             WHEN sctsc_state_protected OR sctsc_state_changeable THEN sctsc_state_changeable
+                                             WHEN sctsc_state_released OR sctsc_state_export_started THEN sctsc_state_released ).
+
+        IF iv_get_has_objects = abap_true AND line_exists( lt_order_with_objects[ trkorr = <ls_tasks>-trkorr ] ).
+          <ls_orders>-task_has_objects = abap_true.
+        ELSE.
+          <ls_orders>-task_has_objects = abap_false.
+        ENDIF.
+        TRY.
+            <ls_orders>-task_status_desc = mo_order_md->get_status_desc( <ls_orders>-task_status ).
+          CATCH cx_sy_itab_line_not_found.
+        ENDTRY.
+
+        TRY.
+            <ls_orders>-task_type_desc = mo_order_md->get_function_desc( <ls_tasks>-trfunction ).
+          CATCH cx_sy_itab_line_not_found.
+        ENDTRY.
+
+      ENDLOOP.
+      IF sy-subrc NE 0.
+        INSERT ls_orders INTO TABLE rt_order_data.
+      ENDIF.
+
+    ENDLOOP.
+  ENDMETHOD.
+
+  METHOD read_request.
+
+    CLEAR: rs_data.
+
+    rs_data-trkorr = iv_order.
+
+    CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
+      EXPORTING
+        iv_read_e070  = 'X'
+        iv_read_e07t  = 'X'
+        iv_read_e070c = 'X'
+        iv_read_e070m = 'X'
+      CHANGING
+        cs_request    = rs_data
+      EXCEPTIONS
+        OTHERS        = 1.
+    IF sy-subrc NE 0.
+      DATA(lv_message) = zcl_spt_utilities=>fill_return( iv_type = zcl_spt_core_data=>cs_message-type_error
+                                                                 iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                 iv_number = '009'
+                                                                 iv_message_v1 = iv_order
+                                                                 iv_langu      = mv_langu )-message.
+
+      RAISE EXCEPTION TYPE zcx_spt_trans_order
+        EXPORTING
+          textid   = zcx_spt_trans_order=>message_other_class
+          mv_msgv1 = lv_message.
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD read_request_and_task.
+
+    CLEAR: rt_data.
+
+    DATA(ls_order_data) = VALUE trwbo_request_header( trkorr = iv_order ).
+
+    CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
+      EXPORTING
+        iv_read_e070  = 'X'
+        iv_read_e07t  = 'X'
+        iv_read_e070c = 'X'
+        iv_read_e070m = 'X'
+      CHANGING
+        cs_request    = ls_order_data
+      EXCEPTIONS
+        OTHERS        = 1.
+    IF sy-subrc = 0.
+      INSERT ls_order_data INTO TABLE rt_data.
+
+      SELECT trkorr INTO TABLE @DATA(lt_task)
+             FROM e070
+             WHERE strkorr = @iv_order.
+      IF sy-subrc = 0.
+        rt_data = VALUE #( BASE rt_data FOR <wa> IN lt_task ( read_request( <wa>-trkorr ) ) ).
+      ENDIF.
+
+    ELSE.
+      DATA(lv_message) = zcl_spt_utilities=>fill_return( iv_type = zcl_spt_core_data=>cs_message-type_error
+                                                                 iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                 iv_number = '009'
+                                                                 iv_message_v1 = iv_order
+                                                                 iv_langu      = mv_langu )-message.
+
+      RAISE EXCEPTION TYPE zcx_spt_trans_order
+        EXPORTING
+          textid   = zcx_spt_trans_order=>message_other_class
+          mv_msgv1 = lv_message.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD create_order_and_task.
+    DATA lt_task TYPE trwbo_request_headers .
+    DATA ls_order TYPE trwbo_request_header.
+    DATA lt_users TYPE scts_users.
+
+    CLEAR: es_return, ev_order, et_order_data.
+
+    DATA(lv_order_text) = CONV e07t-as4text( iv_description ).
+
+    " Las ordenes de custo y workbench son las unicas que tienen tareas
+    IF iv_type = sctsc_type_workbench OR iv_type = sctsc_type_customizing.
+      " No añado al usuario de la propia tarea
+      lt_users = VALUE #( FOR <wa> IN it_users_task WHERE ( table_line NE iv_user )
+                                                    ( user = <wa>
+                                                      type = SWITCH #( iv_type
+                                                                       WHEN sctsc_type_workbench THEN sctsc_type_unclass_task
+                                                                       WHEN sctsc_type_customizing THEN sctsc_type_cust_task ) ) ).
+
+      INSERT VALUE #( user = iv_user
+                      type = SWITCH #( iv_type
+                                       WHEN sctsc_type_workbench THEN sctsc_type_unclass_task
+                                       WHEN sctsc_type_customizing THEN sctsc_type_cust_task ) ) INTO TABLE lt_users.
+    ENDIF.
+
+    CALL FUNCTION 'TR_INSERT_REQUEST_WITH_TASKS'
+      EXPORTING
+        iv_type           = iv_type
+        iv_text           = lv_order_text
+        iv_owner          = iv_user
+        iv_target         = iv_system
+        it_users          = lt_users
+      IMPORTING
+        es_request_header = ls_order
+        et_task_headers   = lt_task
+      EXCEPTIONS
+        insert_failed     = 1
+        enqueue_failed    = 2
+        OTHERS            = 3.
+
+    IF sy-subrc = 0.
+      es_return = VALUE #( type = zcl_spt_core_data=>cs_message-type_success
+                                 message = zcl_spt_utilities=>fill_return( iv_type = zcl_spt_core_data=>cs_message-type_success
+                                                                           iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                           iv_number = '002'
+                                                                           iv_message_v1 = ev_order
+                                                                           iv_langu      = mv_langu )-message ).
+
+      INSERT ls_order INTO TABLE lt_task.
+
+      et_order_data = convert_req_header( lt_task ).
+
+    ELSE.
+
+      es_return = VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                           message = zcl_spt_utilities=>fill_return( iv_type = zcl_spt_core_data=>cs_message-type_error
+                                                          iv_id = sy-msgid
+                                                          iv_number = sy-msgno
+                                                          iv_message_v1 = sy-msgv1
+                                                          iv_message_v2 = sy-msgv2
+                                                          iv_message_v3 = sy-msgv3
+                                                          iv_message_v4 = sy-msgv4
+                                                          iv_langu      = mv_langu )-message  ) .
+
+
     ENDIF.
 
   ENDMETHOD.
