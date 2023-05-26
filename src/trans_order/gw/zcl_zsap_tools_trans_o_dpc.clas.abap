@@ -23,6 +23,79 @@ protected section.
 
   data mo_injection type ref to /IWBEP/IF_SB_GEN_DPC_INJECTION .
 
+  methods USERORDERSSET_UPDATE_ENTITY
+    importing
+      !IV_ENTITY_NAME type STRING
+      !IV_ENTITY_SET_NAME type STRING
+      !IV_SOURCE_NAME type STRING
+      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
+      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY_U optional
+      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
+      !IO_DATA_PROVIDER type ref to /IWBEP/IF_MGW_ENTRY_PROVIDER optional
+    exporting
+      !ER_ENTITY type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_USERORDERS
+    raising
+      /IWBEP/CX_MGW_BUSI_EXCEPTION
+      /IWBEP/CX_MGW_TECH_EXCEPTION .
+  methods USERORDERSSET_GET_ENTITYSET
+    importing
+      !IV_ENTITY_NAME type STRING
+      !IV_ENTITY_SET_NAME type STRING
+      !IV_SOURCE_NAME type STRING
+      !IT_FILTER_SELECT_OPTIONS type /IWBEP/T_MGW_SELECT_OPTION
+      !IS_PAGING type /IWBEP/S_MGW_PAGING
+      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
+      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
+      !IT_ORDER type /IWBEP/T_MGW_SORTING_ORDER
+      !IV_FILTER_STRING type STRING
+      !IV_SEARCH_STRING type STRING
+      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITYSET optional
+    exporting
+      !ET_ENTITYSET type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TT_USERORDERS
+      !ES_RESPONSE_CONTEXT type /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_CONTEXT
+    raising
+      /IWBEP/CX_MGW_BUSI_EXCEPTION
+      /IWBEP/CX_MGW_TECH_EXCEPTION .
+  methods USERORDERSSET_GET_ENTITY
+    importing
+      !IV_ENTITY_NAME type STRING
+      !IV_ENTITY_SET_NAME type STRING
+      !IV_SOURCE_NAME type STRING
+      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
+      !IO_REQUEST_OBJECT type ref to /IWBEP/IF_MGW_REQ_ENTITY optional
+      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY optional
+      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
+    exporting
+      !ER_ENTITY type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_USERORDERS
+      !ES_RESPONSE_CONTEXT type /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_ENTITY_CNTXT
+    raising
+      /IWBEP/CX_MGW_BUSI_EXCEPTION
+      /IWBEP/CX_MGW_TECH_EXCEPTION .
+  methods USERORDERSSET_DELETE_ENTITY
+    importing
+      !IV_ENTITY_NAME type STRING
+      !IV_ENTITY_SET_NAME type STRING
+      !IV_SOURCE_NAME type STRING
+      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
+      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY_D optional
+      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
+    raising
+      /IWBEP/CX_MGW_BUSI_EXCEPTION
+      /IWBEP/CX_MGW_TECH_EXCEPTION .
+  methods USERORDERSSET_CREATE_ENTITY
+    importing
+      !IV_ENTITY_NAME type STRING
+      !IV_ENTITY_SET_NAME type STRING
+      !IV_SOURCE_NAME type STRING
+      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
+      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY_C optional
+      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
+      !IO_DATA_PROVIDER type ref to /IWBEP/IF_MGW_ENTRY_PROVIDER optional
+    exporting
+      !ER_ENTITY type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_USERORDERS
+    raising
+      /IWBEP/CX_MGW_BUSI_EXCEPTION
+      /IWBEP/CX_MGW_TECH_EXCEPTION .
   methods SYSTEMSUSERSET_UPDATE_ENTITY
     importing
       !IV_ENTITY_NAME type STRING
@@ -315,79 +388,6 @@ protected section.
     raising
       /IWBEP/CX_MGW_BUSI_EXCEPTION
       /IWBEP/CX_MGW_TECH_EXCEPTION .
-  methods GETUSERSORDERSSE_UPDATE_ENTITY
-    importing
-      !IV_ENTITY_NAME type STRING
-      !IV_ENTITY_SET_NAME type STRING
-      !IV_SOURCE_NAME type STRING
-      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
-      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY_U optional
-      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
-      !IO_DATA_PROVIDER type ref to /IWBEP/IF_MGW_ENTRY_PROVIDER optional
-    exporting
-      !ER_ENTITY type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_GETUSERSORDERS
-    raising
-      /IWBEP/CX_MGW_BUSI_EXCEPTION
-      /IWBEP/CX_MGW_TECH_EXCEPTION .
-  methods GETUSERSORDERSSE_GET_ENTITYSET
-    importing
-      !IV_ENTITY_NAME type STRING
-      !IV_ENTITY_SET_NAME type STRING
-      !IV_SOURCE_NAME type STRING
-      !IT_FILTER_SELECT_OPTIONS type /IWBEP/T_MGW_SELECT_OPTION
-      !IS_PAGING type /IWBEP/S_MGW_PAGING
-      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
-      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
-      !IT_ORDER type /IWBEP/T_MGW_SORTING_ORDER
-      !IV_FILTER_STRING type STRING
-      !IV_SEARCH_STRING type STRING
-      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITYSET optional
-    exporting
-      !ET_ENTITYSET type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TT_GETUSERSORDERS
-      !ES_RESPONSE_CONTEXT type /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_CONTEXT
-    raising
-      /IWBEP/CX_MGW_BUSI_EXCEPTION
-      /IWBEP/CX_MGW_TECH_EXCEPTION .
-  methods GETUSERSORDERSSE_GET_ENTITY
-    importing
-      !IV_ENTITY_NAME type STRING
-      !IV_ENTITY_SET_NAME type STRING
-      !IV_SOURCE_NAME type STRING
-      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
-      !IO_REQUEST_OBJECT type ref to /IWBEP/IF_MGW_REQ_ENTITY optional
-      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY optional
-      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
-    exporting
-      !ER_ENTITY type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_GETUSERSORDERS
-      !ES_RESPONSE_CONTEXT type /IWBEP/IF_MGW_APPL_SRV_RUNTIME=>TY_S_MGW_RESPONSE_ENTITY_CNTXT
-    raising
-      /IWBEP/CX_MGW_BUSI_EXCEPTION
-      /IWBEP/CX_MGW_TECH_EXCEPTION .
-  methods GETUSERSORDERSSE_DELETE_ENTITY
-    importing
-      !IV_ENTITY_NAME type STRING
-      !IV_ENTITY_SET_NAME type STRING
-      !IV_SOURCE_NAME type STRING
-      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
-      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY_D optional
-      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
-    raising
-      /IWBEP/CX_MGW_BUSI_EXCEPTION
-      /IWBEP/CX_MGW_TECH_EXCEPTION .
-  methods GETUSERSORDERSSE_CREATE_ENTITY
-    importing
-      !IV_ENTITY_NAME type STRING
-      !IV_ENTITY_SET_NAME type STRING
-      !IV_SOURCE_NAME type STRING
-      !IT_KEY_TAB type /IWBEP/T_MGW_NAME_VALUE_PAIR
-      !IO_TECH_REQUEST_CONTEXT type ref to /IWBEP/IF_MGW_REQ_ENTITY_C optional
-      !IT_NAVIGATION_PATH type /IWBEP/T_MGW_NAVIGATION_PATH
-      !IO_DATA_PROVIDER type ref to /IWBEP/IF_MGW_ENTRY_PROVIDER optional
-    exporting
-      !ER_ENTITY type ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_GETUSERSORDERS
-    raising
-      /IWBEP/CX_MGW_BUSI_EXCEPTION
-      /IWBEP/CX_MGW_TECH_EXCEPTION .
   methods GETSYSTEMSTRANSP_UPDATE_ENTITY
     importing
       !IV_ENTITY_NAME type STRING
@@ -621,26 +621,72 @@ CLASS ZCL_ZSAP_TOOLS_TRANS_O_DPC IMPLEMENTATION.
   method /IWBEP/IF_MGW_APPL_SRV_RUNTIME~CREATE_ENTITY.
 *&----------------------------------------------------------------------------------------------*
 *&  Include           /IWBEP/DPC_TEMP_CRT_ENTITY_BASE
-*&* This class has been generated on 25.05.2023 22:41:33 in client 001
+*&* This class has been generated on 26.05.2023 19:49:00 in client 001
 *&*
 *&*       WARNING--> NEVER MODIFY THIS CLASS <--WARNING
 *&*   If you want to change the DPC implementation, use the
 *&*   generated methods inside the DPC provider subclass - ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT
 *&-----------------------------------------------------------------------------------------------*
 
- DATA deleteordersset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_deleteorders.
- DATA getusersordersse_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_getusersorders.
- DATA orderset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_order.
- DATA dotransportcopys_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_dotransportcopy.
+ DATA userordersset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_userorders.
  DATA systemsuserset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_systemsuser.
+ DATA deleteordersset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_deleteorders.
+ DATA orderset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_order.
+ DATA releaseorderset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_releaseorder.
+ DATA dotransportcopys_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_dotransportcopy.
  DATA getsystemstransp_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_getsystemstransport.
  DATA orderobjectsset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_orderobjects.
- DATA releaseorderset_create_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_releaseorder.
  DATA lv_entityset_name TYPE string.
 
 lv_entityset_name = io_tech_request_context->get_entity_set_name( ).
 
 CASE lv_entityset_name.
+*-------------------------------------------------------------------------*
+*             EntitySet -  userOrdersSet
+*-------------------------------------------------------------------------*
+     WHEN 'userOrdersSet'.
+*     Call the entity set generated method
+    userordersset_create_entity(
+         EXPORTING iv_entity_name     = iv_entity_name
+                   iv_entity_set_name = iv_entity_set_name
+                   iv_source_name     = iv_source_name
+                   io_data_provider   = io_data_provider
+                   it_key_tab         = it_key_tab
+                   it_navigation_path = it_navigation_path
+                   io_tech_request_context = io_tech_request_context
+       	 IMPORTING er_entity          = userordersset_create_entity
+    ).
+*     Send specific entity data to the caller interfaces
+    copy_data_to_ref(
+      EXPORTING
+        is_data = userordersset_create_entity
+      CHANGING
+        cr_data = er_entity
+   ).
+
+*-------------------------------------------------------------------------*
+*             EntitySet -  systemsUserSet
+*-------------------------------------------------------------------------*
+     WHEN 'systemsUserSet'.
+*     Call the entity set generated method
+    systemsuserset_create_entity(
+         EXPORTING iv_entity_name     = iv_entity_name
+                   iv_entity_set_name = iv_entity_set_name
+                   iv_source_name     = iv_source_name
+                   io_data_provider   = io_data_provider
+                   it_key_tab         = it_key_tab
+                   it_navigation_path = it_navigation_path
+                   io_tech_request_context = io_tech_request_context
+       	 IMPORTING er_entity          = systemsuserset_create_entity
+    ).
+*     Send specific entity data to the caller interfaces
+    copy_data_to_ref(
+      EXPORTING
+        is_data = systemsuserset_create_entity
+      CHANGING
+        cr_data = er_entity
+   ).
+
 *-------------------------------------------------------------------------*
 *             EntitySet -  deleteOrdersSet
 *-------------------------------------------------------------------------*
@@ -660,29 +706,6 @@ CASE lv_entityset_name.
     copy_data_to_ref(
       EXPORTING
         is_data = deleteordersset_create_entity
-      CHANGING
-        cr_data = er_entity
-   ).
-
-*-------------------------------------------------------------------------*
-*             EntitySet -  getUsersOrdersSet
-*-------------------------------------------------------------------------*
-     WHEN 'getUsersOrdersSet'.
-*     Call the entity set generated method
-    getusersordersse_create_entity(
-         EXPORTING iv_entity_name     = iv_entity_name
-                   iv_entity_set_name = iv_entity_set_name
-                   iv_source_name     = iv_source_name
-                   io_data_provider   = io_data_provider
-                   it_key_tab         = it_key_tab
-                   it_navigation_path = it_navigation_path
-                   io_tech_request_context = io_tech_request_context
-       	 IMPORTING er_entity          = getusersordersse_create_entity
-    ).
-*     Send specific entity data to the caller interfaces
-    copy_data_to_ref(
-      EXPORTING
-        is_data = getusersordersse_create_entity
       CHANGING
         cr_data = er_entity
    ).
@@ -711,6 +734,29 @@ CASE lv_entityset_name.
    ).
 
 *-------------------------------------------------------------------------*
+*             EntitySet -  releaseOrderSet
+*-------------------------------------------------------------------------*
+     WHEN 'releaseOrderSet'.
+*     Call the entity set generated method
+    releaseorderset_create_entity(
+         EXPORTING iv_entity_name     = iv_entity_name
+                   iv_entity_set_name = iv_entity_set_name
+                   iv_source_name     = iv_source_name
+                   io_data_provider   = io_data_provider
+                   it_key_tab         = it_key_tab
+                   it_navigation_path = it_navigation_path
+                   io_tech_request_context = io_tech_request_context
+       	 IMPORTING er_entity          = releaseorderset_create_entity
+    ).
+*     Send specific entity data to the caller interfaces
+    copy_data_to_ref(
+      EXPORTING
+        is_data = releaseorderset_create_entity
+      CHANGING
+        cr_data = er_entity
+   ).
+
+*-------------------------------------------------------------------------*
 *             EntitySet -  doTransportCopySet
 *-------------------------------------------------------------------------*
      WHEN 'doTransportCopySet'.
@@ -729,29 +775,6 @@ CASE lv_entityset_name.
     copy_data_to_ref(
       EXPORTING
         is_data = dotransportcopys_create_entity
-      CHANGING
-        cr_data = er_entity
-   ).
-
-*-------------------------------------------------------------------------*
-*             EntitySet -  systemsUserSet
-*-------------------------------------------------------------------------*
-     WHEN 'systemsUserSet'.
-*     Call the entity set generated method
-    systemsuserset_create_entity(
-         EXPORTING iv_entity_name     = iv_entity_name
-                   iv_entity_set_name = iv_entity_set_name
-                   iv_source_name     = iv_source_name
-                   io_data_provider   = io_data_provider
-                   it_key_tab         = it_key_tab
-                   it_navigation_path = it_navigation_path
-                   io_tech_request_context = io_tech_request_context
-       	 IMPORTING er_entity          = systemsuserset_create_entity
-    ).
-*     Send specific entity data to the caller interfaces
-    copy_data_to_ref(
-      EXPORTING
-        is_data = systemsuserset_create_entity
       CHANGING
         cr_data = er_entity
    ).
@@ -802,29 +825,6 @@ CASE lv_entityset_name.
         cr_data = er_entity
    ).
 
-*-------------------------------------------------------------------------*
-*             EntitySet -  releaseOrderSet
-*-------------------------------------------------------------------------*
-     WHEN 'releaseOrderSet'.
-*     Call the entity set generated method
-    releaseorderset_create_entity(
-         EXPORTING iv_entity_name     = iv_entity_name
-                   iv_entity_set_name = iv_entity_set_name
-                   iv_source_name     = iv_source_name
-                   io_data_provider   = io_data_provider
-                   it_key_tab         = it_key_tab
-                   it_navigation_path = it_navigation_path
-                   io_tech_request_context = io_tech_request_context
-       	 IMPORTING er_entity          = releaseorderset_create_entity
-    ).
-*     Send specific entity data to the caller interfaces
-    copy_data_to_ref(
-      EXPORTING
-        is_data = releaseorderset_create_entity
-      CHANGING
-        cr_data = er_entity
-   ).
-
   when others.
     super->/iwbep/if_mgw_appl_srv_runtime~create_entity(
        EXPORTING
@@ -844,7 +844,7 @@ ENDCASE.
   method /IWBEP/IF_MGW_APPL_SRV_RUNTIME~DELETE_ENTITY.
 *&----------------------------------------------------------------------------------------------*
 *&  Include           /IWBEP/DPC_TEMP_DEL_ENTITY_BASE
-*&* This class has been generated on 25.05.2023 22:41:33 in client 001
+*&* This class has been generated on 26.05.2023 19:49:00 in client 001
 *&*
 *&*       WARNING--> NEVER MODIFY THIS CLASS <--WARNING
 *&*   If you want to change the DPC implementation, use the
@@ -856,6 +856,20 @@ ENDCASE.
 lv_entityset_name = io_tech_request_context->get_entity_set_name( ).
 
 CASE lv_entityset_name.
+*-------------------------------------------------------------------------*
+*             EntitySet -  userOrdersSet
+*-------------------------------------------------------------------------*
+      when 'userOrdersSet'.
+*     Call the entity set generated method
+     userordersset_delete_entity(
+          EXPORTING iv_entity_name     = iv_entity_name
+                    iv_entity_set_name = iv_entity_set_name
+                    iv_source_name     = iv_source_name
+                    it_key_tab         = it_key_tab
+                    it_navigation_path = it_navigation_path
+                    io_tech_request_context = io_tech_request_context
+     ).
+
 *-------------------------------------------------------------------------*
 *             EntitySet -  deleteOrdersSet
 *-------------------------------------------------------------------------*
@@ -927,39 +941,25 @@ CASE lv_entityset_name.
      ).
 
 *-------------------------------------------------------------------------*
-*             EntitySet -  releaseOrderSet
-*-------------------------------------------------------------------------*
-      when 'releaseOrderSet'.
-*     Call the entity set generated method
-     releaseorderset_delete_entity(
-          EXPORTING iv_entity_name     = iv_entity_name
-                    iv_entity_set_name = iv_entity_set_name
-                    iv_source_name     = iv_source_name
-                    it_key_tab         = it_key_tab
-                    it_navigation_path = it_navigation_path
-                    io_tech_request_context = io_tech_request_context
-     ).
-
-*-------------------------------------------------------------------------*
-*             EntitySet -  getUsersOrdersSet
-*-------------------------------------------------------------------------*
-      when 'getUsersOrdersSet'.
-*     Call the entity set generated method
-     getusersordersse_delete_entity(
-          EXPORTING iv_entity_name     = iv_entity_name
-                    iv_entity_set_name = iv_entity_set_name
-                    iv_source_name     = iv_source_name
-                    it_key_tab         = it_key_tab
-                    it_navigation_path = it_navigation_path
-                    io_tech_request_context = io_tech_request_context
-     ).
-
-*-------------------------------------------------------------------------*
 *             EntitySet -  systemsUserSet
 *-------------------------------------------------------------------------*
       when 'systemsUserSet'.
 *     Call the entity set generated method
      systemsuserset_delete_entity(
+          EXPORTING iv_entity_name     = iv_entity_name
+                    iv_entity_set_name = iv_entity_set_name
+                    iv_source_name     = iv_source_name
+                    it_key_tab         = it_key_tab
+                    it_navigation_path = it_navigation_path
+                    io_tech_request_context = io_tech_request_context
+     ).
+
+*-------------------------------------------------------------------------*
+*             EntitySet -  releaseOrderSet
+*-------------------------------------------------------------------------*
+      when 'releaseOrderSet'.
+*     Call the entity set generated method
+     releaseorderset_delete_entity(
           EXPORTING iv_entity_name     = iv_entity_name
                     iv_entity_set_name = iv_entity_set_name
                     iv_source_name     = iv_source_name
@@ -984,21 +984,21 @@ CASE lv_entityset_name.
   method /IWBEP/IF_MGW_APPL_SRV_RUNTIME~GET_ENTITY.
 *&-----------------------------------------------------------------------------------------------*
 *&  Include           /IWBEP/DPC_TEMP_GETENTITY_BASE
-*&* This class has been generated  on 25.05.2023 22:41:33 in client 001
+*&* This class has been generated  on 26.05.2023 19:49:00 in client 001
 *&*
 *&*       WARNING--> NEVER MODIFY THIS CLASS <--WARNING
 *&*   If you want to change the DPC implementation, use the
 *&*   generated methods inside the DPC provider subclass - ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT
 *&-----------------------------------------------------------------------------------------------*
 
- DATA getusersordersse_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_getusersorders.
- DATA deleteordersset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_deleteorders.
- DATA orderset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_order.
  DATA systemsuserset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_systemsuser.
- DATA dotransportcopys_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_dotransportcopy.
- DATA getsystemstransp_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_getsystemstransport.
+ DATA userordersset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_userorders.
+ DATA deleteordersset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_deleteorders.
  DATA releaseorderset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_releaseorder.
+ DATA orderset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_order.
+ DATA dotransportcopys_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_dotransportcopy.
  DATA orderobjectsset_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_orderobjects.
+ DATA getsystemstransp_get_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_getsystemstransport.
  DATA lv_entityset_name TYPE string.
  DATA lr_entity TYPE REF TO data.       "#EC NEEDED
 
@@ -1006,26 +1006,54 @@ lv_entityset_name = io_tech_request_context->get_entity_set_name( ).
 
 CASE lv_entityset_name.
 *-------------------------------------------------------------------------*
-*             EntitySet -  getUsersOrdersSet
+*             EntitySet -  systemsUserSet
 *-------------------------------------------------------------------------*
-      WHEN 'getUsersOrdersSet'.
+      WHEN 'systemsUserSet'.
 *     Call the entity set generated method
-          getusersordersse_get_entity(
+          systemsuserset_get_entity(
                EXPORTING iv_entity_name     = iv_entity_name
                          iv_entity_set_name = iv_entity_set_name
                          iv_source_name     = iv_source_name
                          it_key_tab         = it_key_tab
                          it_navigation_path = it_navigation_path
                          io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = getusersordersse_get_entity
+             	 IMPORTING er_entity          = systemsuserset_get_entity
                          es_response_context = es_response_context
           ).
 
-        IF getusersordersse_get_entity IS NOT INITIAL.
+        IF systemsuserset_get_entity IS NOT INITIAL.
 *     Send specific entity data to the caller interface
           copy_data_to_ref(
             EXPORTING
-              is_data = getusersordersse_get_entity
+              is_data = systemsuserset_get_entity
+            CHANGING
+              cr_data = er_entity
+          ).
+        ELSE.
+*         In case of initial values - unbind the entity reference
+          er_entity = lr_entity.
+        ENDIF.
+*-------------------------------------------------------------------------*
+*             EntitySet -  userOrdersSet
+*-------------------------------------------------------------------------*
+      WHEN 'userOrdersSet'.
+*     Call the entity set generated method
+          userordersset_get_entity(
+               EXPORTING iv_entity_name     = iv_entity_name
+                         iv_entity_set_name = iv_entity_set_name
+                         iv_source_name     = iv_source_name
+                         it_key_tab         = it_key_tab
+                         it_navigation_path = it_navigation_path
+                         io_tech_request_context = io_tech_request_context
+             	 IMPORTING er_entity          = userordersset_get_entity
+                         es_response_context = es_response_context
+          ).
+
+        IF userordersset_get_entity IS NOT INITIAL.
+*     Send specific entity data to the caller interface
+          copy_data_to_ref(
+            EXPORTING
+              is_data = userordersset_get_entity
             CHANGING
               cr_data = er_entity
           ).
@@ -1062,6 +1090,34 @@ CASE lv_entityset_name.
           er_entity = lr_entity.
         ENDIF.
 *-------------------------------------------------------------------------*
+*             EntitySet -  releaseOrderSet
+*-------------------------------------------------------------------------*
+      WHEN 'releaseOrderSet'.
+*     Call the entity set generated method
+          releaseorderset_get_entity(
+               EXPORTING iv_entity_name     = iv_entity_name
+                         iv_entity_set_name = iv_entity_set_name
+                         iv_source_name     = iv_source_name
+                         it_key_tab         = it_key_tab
+                         it_navigation_path = it_navigation_path
+                         io_tech_request_context = io_tech_request_context
+             	 IMPORTING er_entity          = releaseorderset_get_entity
+                         es_response_context = es_response_context
+          ).
+
+        IF releaseorderset_get_entity IS NOT INITIAL.
+*     Send specific entity data to the caller interface
+          copy_data_to_ref(
+            EXPORTING
+              is_data = releaseorderset_get_entity
+            CHANGING
+              cr_data = er_entity
+          ).
+        ELSE.
+*         In case of initial values - unbind the entity reference
+          er_entity = lr_entity.
+        ENDIF.
+*-------------------------------------------------------------------------*
 *             EntitySet -  orderSet
 *-------------------------------------------------------------------------*
       WHEN 'orderSet'.
@@ -1082,34 +1138,6 @@ CASE lv_entityset_name.
           copy_data_to_ref(
             EXPORTING
               is_data = orderset_get_entity
-            CHANGING
-              cr_data = er_entity
-          ).
-        ELSE.
-*         In case of initial values - unbind the entity reference
-          er_entity = lr_entity.
-        ENDIF.
-*-------------------------------------------------------------------------*
-*             EntitySet -  systemsUserSet
-*-------------------------------------------------------------------------*
-      WHEN 'systemsUserSet'.
-*     Call the entity set generated method
-          systemsuserset_get_entity(
-               EXPORTING iv_entity_name     = iv_entity_name
-                         iv_entity_set_name = iv_entity_set_name
-                         iv_source_name     = iv_source_name
-                         it_key_tab         = it_key_tab
-                         it_navigation_path = it_navigation_path
-                         io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = systemsuserset_get_entity
-                         es_response_context = es_response_context
-          ).
-
-        IF systemsuserset_get_entity IS NOT INITIAL.
-*     Send specific entity data to the caller interface
-          copy_data_to_ref(
-            EXPORTING
-              is_data = systemsuserset_get_entity
             CHANGING
               cr_data = er_entity
           ).
@@ -1146,62 +1174,6 @@ CASE lv_entityset_name.
           er_entity = lr_entity.
         ENDIF.
 *-------------------------------------------------------------------------*
-*             EntitySet -  getSystemsTransportSet
-*-------------------------------------------------------------------------*
-      WHEN 'getSystemsTransportSet'.
-*     Call the entity set generated method
-          getsystemstransp_get_entity(
-               EXPORTING iv_entity_name     = iv_entity_name
-                         iv_entity_set_name = iv_entity_set_name
-                         iv_source_name     = iv_source_name
-                         it_key_tab         = it_key_tab
-                         it_navigation_path = it_navigation_path
-                         io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = getsystemstransp_get_entity
-                         es_response_context = es_response_context
-          ).
-
-        IF getsystemstransp_get_entity IS NOT INITIAL.
-*     Send specific entity data to the caller interface
-          copy_data_to_ref(
-            EXPORTING
-              is_data = getsystemstransp_get_entity
-            CHANGING
-              cr_data = er_entity
-          ).
-        ELSE.
-*         In case of initial values - unbind the entity reference
-          er_entity = lr_entity.
-        ENDIF.
-*-------------------------------------------------------------------------*
-*             EntitySet -  releaseOrderSet
-*-------------------------------------------------------------------------*
-      WHEN 'releaseOrderSet'.
-*     Call the entity set generated method
-          releaseorderset_get_entity(
-               EXPORTING iv_entity_name     = iv_entity_name
-                         iv_entity_set_name = iv_entity_set_name
-                         iv_source_name     = iv_source_name
-                         it_key_tab         = it_key_tab
-                         it_navigation_path = it_navigation_path
-                         io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = releaseorderset_get_entity
-                         es_response_context = es_response_context
-          ).
-
-        IF releaseorderset_get_entity IS NOT INITIAL.
-*     Send specific entity data to the caller interface
-          copy_data_to_ref(
-            EXPORTING
-              is_data = releaseorderset_get_entity
-            CHANGING
-              cr_data = er_entity
-          ).
-        ELSE.
-*         In case of initial values - unbind the entity reference
-          er_entity = lr_entity.
-        ENDIF.
-*-------------------------------------------------------------------------*
 *             EntitySet -  orderObjectsSet
 *-------------------------------------------------------------------------*
       WHEN 'orderObjectsSet'.
@@ -1229,6 +1201,34 @@ CASE lv_entityset_name.
 *         In case of initial values - unbind the entity reference
           er_entity = lr_entity.
         ENDIF.
+*-------------------------------------------------------------------------*
+*             EntitySet -  getSystemsTransportSet
+*-------------------------------------------------------------------------*
+      WHEN 'getSystemsTransportSet'.
+*     Call the entity set generated method
+          getsystemstransp_get_entity(
+               EXPORTING iv_entity_name     = iv_entity_name
+                         iv_entity_set_name = iv_entity_set_name
+                         iv_source_name     = iv_source_name
+                         it_key_tab         = it_key_tab
+                         it_navigation_path = it_navigation_path
+                         io_tech_request_context = io_tech_request_context
+             	 IMPORTING er_entity          = getsystemstransp_get_entity
+                         es_response_context = es_response_context
+          ).
+
+        IF getsystemstransp_get_entity IS NOT INITIAL.
+*     Send specific entity data to the caller interface
+          copy_data_to_ref(
+            EXPORTING
+              is_data = getsystemstransp_get_entity
+            CHANGING
+              cr_data = er_entity
+          ).
+        ELSE.
+*         In case of initial values - unbind the entity reference
+          er_entity = lr_entity.
+        ENDIF.
 
       WHEN OTHERS.
         super->/iwbep/if_mgw_appl_srv_runtime~get_entity(
@@ -1248,31 +1248,31 @@ CASE lv_entityset_name.
   method /IWBEP/IF_MGW_APPL_SRV_RUNTIME~GET_ENTITYSET.
 *&----------------------------------------------------------------------------------------------*
 *&  Include           /IWBEP/DPC_TMP_ENTITYSET_BASE
-*&* This class has been generated on 25.05.2023 22:41:33 in client 001
+*&* This class has been generated on 26.05.2023 19:49:00 in client 001
 *&*
 *&*       WARNING--> NEVER MODIFY THIS CLASS <--WARNING
 *&*   If you want to change the DPC implementation, use the
 *&*   generated methods inside the DPC provider subclass - ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT
 *&-----------------------------------------------------------------------------------------------*
- DATA getusersordersse_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_getusersorders.
- DATA orderobjectsset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_orderobjects.
- DATA deleteordersset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_deleteorders.
- DATA releaseorderset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_releaseorder.
- DATA getsystemstransp_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_getsystemstransport.
- DATA orderset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_order.
- DATA dotransportcopys_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_dotransportcopy.
  DATA systemsuserset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_systemsuser.
+ DATA getsystemstransp_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_getsystemstransport.
+ DATA userordersset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_userorders.
+ DATA orderobjectsset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_orderobjects.
+ DATA dotransportcopys_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_dotransportcopy.
+ DATA deleteordersset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_deleteorders.
+ DATA orderset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_order.
+ DATA releaseorderset_get_entityset TYPE zcl_zsap_tools_trans_o_mpc=>tt_releaseorder.
  DATA lv_entityset_name TYPE string.
 
 lv_entityset_name = io_tech_request_context->get_entity_set_name( ).
 
 CASE lv_entityset_name.
 *-------------------------------------------------------------------------*
-*             EntitySet -  getUsersOrdersSet
+*             EntitySet -  systemsUserSet
 *-------------------------------------------------------------------------*
-   WHEN 'getUsersOrdersSet'.
+   WHEN 'systemsUserSet'.
 *     Call the entity set generated method
-      getusersordersse_get_entityset(
+      systemsuserset_get_entityset(
         EXPORTING
          iv_entity_name = iv_entity_name
          iv_entity_set_name = iv_entity_set_name
@@ -1286,103 +1286,13 @@ CASE lv_entityset_name.
          iv_search_string = iv_search_string
          io_tech_request_context = io_tech_request_context
        IMPORTING
-         et_entityset = getusersordersse_get_entityset
+         et_entityset = systemsuserset_get_entityset
          es_response_context = es_response_context
        ).
 *     Send specific entity data to the caller interface
       copy_data_to_ref(
         EXPORTING
-          is_data = getusersordersse_get_entityset
-        CHANGING
-          cr_data = er_entityset
-      ).
-
-*-------------------------------------------------------------------------*
-*             EntitySet -  orderObjectsSet
-*-------------------------------------------------------------------------*
-   WHEN 'orderObjectsSet'.
-*     Call the entity set generated method
-      orderobjectsset_get_entityset(
-        EXPORTING
-         iv_entity_name = iv_entity_name
-         iv_entity_set_name = iv_entity_set_name
-         iv_source_name = iv_source_name
-         it_filter_select_options = it_filter_select_options
-         it_order = it_order
-         is_paging = is_paging
-         it_navigation_path = it_navigation_path
-         it_key_tab = it_key_tab
-         iv_filter_string = iv_filter_string
-         iv_search_string = iv_search_string
-         io_tech_request_context = io_tech_request_context
-       IMPORTING
-         et_entityset = orderobjectsset_get_entityset
-         es_response_context = es_response_context
-       ).
-*     Send specific entity data to the caller interface
-      copy_data_to_ref(
-        EXPORTING
-          is_data = orderobjectsset_get_entityset
-        CHANGING
-          cr_data = er_entityset
-      ).
-
-*-------------------------------------------------------------------------*
-*             EntitySet -  deleteOrdersSet
-*-------------------------------------------------------------------------*
-   WHEN 'deleteOrdersSet'.
-*     Call the entity set generated method
-      deleteordersset_get_entityset(
-        EXPORTING
-         iv_entity_name = iv_entity_name
-         iv_entity_set_name = iv_entity_set_name
-         iv_source_name = iv_source_name
-         it_filter_select_options = it_filter_select_options
-         it_order = it_order
-         is_paging = is_paging
-         it_navigation_path = it_navigation_path
-         it_key_tab = it_key_tab
-         iv_filter_string = iv_filter_string
-         iv_search_string = iv_search_string
-         io_tech_request_context = io_tech_request_context
-       IMPORTING
-         et_entityset = deleteordersset_get_entityset
-         es_response_context = es_response_context
-       ).
-*     Send specific entity data to the caller interface
-      copy_data_to_ref(
-        EXPORTING
-          is_data = deleteordersset_get_entityset
-        CHANGING
-          cr_data = er_entityset
-      ).
-
-*-------------------------------------------------------------------------*
-*             EntitySet -  releaseOrderSet
-*-------------------------------------------------------------------------*
-   WHEN 'releaseOrderSet'.
-*     Call the entity set generated method
-      releaseorderset_get_entityset(
-        EXPORTING
-         iv_entity_name = iv_entity_name
-         iv_entity_set_name = iv_entity_set_name
-         iv_source_name = iv_source_name
-         it_filter_select_options = it_filter_select_options
-         it_order = it_order
-         is_paging = is_paging
-         it_navigation_path = it_navigation_path
-         it_key_tab = it_key_tab
-         iv_filter_string = iv_filter_string
-         iv_search_string = iv_search_string
-         io_tech_request_context = io_tech_request_context
-       IMPORTING
-         et_entityset = releaseorderset_get_entityset
-         es_response_context = es_response_context
-       ).
-*     Send specific entity data to the caller interface
-      copy_data_to_ref(
-        EXPORTING
-          is_data = releaseorderset_get_entityset
+          is_data = systemsuserset_get_entityset
         CHANGING
           cr_data = er_entityset
       ).
@@ -1418,11 +1328,11 @@ CASE lv_entityset_name.
       ).
 
 *-------------------------------------------------------------------------*
-*             EntitySet -  orderSet
+*             EntitySet -  userOrdersSet
 *-------------------------------------------------------------------------*
-   WHEN 'orderSet'.
+   WHEN 'userOrdersSet'.
 *     Call the entity set generated method
-      orderset_get_entityset(
+      userordersset_get_entityset(
         EXPORTING
          iv_entity_name = iv_entity_name
          iv_entity_set_name = iv_entity_set_name
@@ -1436,13 +1346,43 @@ CASE lv_entityset_name.
          iv_search_string = iv_search_string
          io_tech_request_context = io_tech_request_context
        IMPORTING
-         et_entityset = orderset_get_entityset
+         et_entityset = userordersset_get_entityset
          es_response_context = es_response_context
        ).
 *     Send specific entity data to the caller interface
       copy_data_to_ref(
         EXPORTING
-          is_data = orderset_get_entityset
+          is_data = userordersset_get_entityset
+        CHANGING
+          cr_data = er_entityset
+      ).
+
+*-------------------------------------------------------------------------*
+*             EntitySet -  orderObjectsSet
+*-------------------------------------------------------------------------*
+   WHEN 'orderObjectsSet'.
+*     Call the entity set generated method
+      orderobjectsset_get_entityset(
+        EXPORTING
+         iv_entity_name = iv_entity_name
+         iv_entity_set_name = iv_entity_set_name
+         iv_source_name = iv_source_name
+         it_filter_select_options = it_filter_select_options
+         it_order = it_order
+         is_paging = is_paging
+         it_navigation_path = it_navigation_path
+         it_key_tab = it_key_tab
+         iv_filter_string = iv_filter_string
+         iv_search_string = iv_search_string
+         io_tech_request_context = io_tech_request_context
+       IMPORTING
+         et_entityset = orderobjectsset_get_entityset
+         es_response_context = es_response_context
+       ).
+*     Send specific entity data to the caller interface
+      copy_data_to_ref(
+        EXPORTING
+          is_data = orderobjectsset_get_entityset
         CHANGING
           cr_data = er_entityset
       ).
@@ -1478,11 +1418,11 @@ CASE lv_entityset_name.
       ).
 
 *-------------------------------------------------------------------------*
-*             EntitySet -  systemsUserSet
+*             EntitySet -  deleteOrdersSet
 *-------------------------------------------------------------------------*
-   WHEN 'systemsUserSet'.
+   WHEN 'deleteOrdersSet'.
 *     Call the entity set generated method
-      systemsuserset_get_entityset(
+      deleteordersset_get_entityset(
         EXPORTING
          iv_entity_name = iv_entity_name
          iv_entity_set_name = iv_entity_set_name
@@ -1496,13 +1436,73 @@ CASE lv_entityset_name.
          iv_search_string = iv_search_string
          io_tech_request_context = io_tech_request_context
        IMPORTING
-         et_entityset = systemsuserset_get_entityset
+         et_entityset = deleteordersset_get_entityset
          es_response_context = es_response_context
        ).
 *     Send specific entity data to the caller interface
       copy_data_to_ref(
         EXPORTING
-          is_data = systemsuserset_get_entityset
+          is_data = deleteordersset_get_entityset
+        CHANGING
+          cr_data = er_entityset
+      ).
+
+*-------------------------------------------------------------------------*
+*             EntitySet -  orderSet
+*-------------------------------------------------------------------------*
+   WHEN 'orderSet'.
+*     Call the entity set generated method
+      orderset_get_entityset(
+        EXPORTING
+         iv_entity_name = iv_entity_name
+         iv_entity_set_name = iv_entity_set_name
+         iv_source_name = iv_source_name
+         it_filter_select_options = it_filter_select_options
+         it_order = it_order
+         is_paging = is_paging
+         it_navigation_path = it_navigation_path
+         it_key_tab = it_key_tab
+         iv_filter_string = iv_filter_string
+         iv_search_string = iv_search_string
+         io_tech_request_context = io_tech_request_context
+       IMPORTING
+         et_entityset = orderset_get_entityset
+         es_response_context = es_response_context
+       ).
+*     Send specific entity data to the caller interface
+      copy_data_to_ref(
+        EXPORTING
+          is_data = orderset_get_entityset
+        CHANGING
+          cr_data = er_entityset
+      ).
+
+*-------------------------------------------------------------------------*
+*             EntitySet -  releaseOrderSet
+*-------------------------------------------------------------------------*
+   WHEN 'releaseOrderSet'.
+*     Call the entity set generated method
+      releaseorderset_get_entityset(
+        EXPORTING
+         iv_entity_name = iv_entity_name
+         iv_entity_set_name = iv_entity_set_name
+         iv_source_name = iv_source_name
+         it_filter_select_options = it_filter_select_options
+         it_order = it_order
+         is_paging = is_paging
+         it_navigation_path = it_navigation_path
+         it_key_tab = it_key_tab
+         iv_filter_string = iv_filter_string
+         iv_search_string = iv_search_string
+         io_tech_request_context = io_tech_request_context
+       IMPORTING
+         et_entityset = releaseorderset_get_entityset
+         es_response_context = es_response_context
+       ).
+*     Send specific entity data to the caller interface
+      copy_data_to_ref(
+        EXPORTING
+          is_data = releaseorderset_get_entityset
         CHANGING
           cr_data = er_entityset
       ).
@@ -1530,27 +1530,81 @@ CASE lv_entityset_name.
   method /IWBEP/IF_MGW_APPL_SRV_RUNTIME~UPDATE_ENTITY.
 *&----------------------------------------------------------------------------------------------*
 *&  Include           /IWBEP/DPC_TEMP_UPD_ENTITY_BASE
-*&* This class has been generated on 25.05.2023 22:41:33 in client 001
+*&* This class has been generated on 26.05.2023 19:49:00 in client 001
 *&*
 *&*       WARNING--> NEVER MODIFY THIS CLASS <--WARNING
 *&*   If you want to change the DPC implementation, use the
 *&*   generated methods inside the DPC provider subclass - ZCL_ZSAP_TOOLS_TRANS_O_DPC_EXT
 *&-----------------------------------------------------------------------------------------------*
 
+ DATA orderset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_order.
+ DATA releaseorderset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_releaseorder.
  DATA dotransportcopys_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_dotransportcopy.
+ DATA deleteordersset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_deleteorders.
  DATA systemsuserset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_systemsuser.
  DATA getsystemstransp_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_getsystemstransport.
- DATA orderset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_order.
- DATA getusersordersse_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_getusersorders.
+ DATA userordersset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_userorders.
  DATA orderobjectsset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_orderobjects.
- DATA deleteordersset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_deleteorders.
- DATA releaseorderset_update_entity TYPE zcl_zsap_tools_trans_o_mpc=>ts_releaseorder.
  DATA lv_entityset_name TYPE string.
  DATA lr_entity TYPE REF TO data. "#EC NEEDED
 
 lv_entityset_name = io_tech_request_context->get_entity_set_name( ).
 
 CASE lv_entityset_name.
+*-------------------------------------------------------------------------*
+*             EntitySet -  orderSet
+*-------------------------------------------------------------------------*
+      WHEN 'orderSet'.
+*     Call the entity set generated method
+          orderset_update_entity(
+               EXPORTING iv_entity_name     = iv_entity_name
+                         iv_entity_set_name = iv_entity_set_name
+                         iv_source_name     = iv_source_name
+                         io_data_provider   = io_data_provider
+                         it_key_tab         = it_key_tab
+                         it_navigation_path = it_navigation_path
+                         io_tech_request_context = io_tech_request_context
+             	 IMPORTING er_entity          = orderset_update_entity
+          ).
+       IF orderset_update_entity IS NOT INITIAL.
+*     Send specific entity data to the caller interface
+          copy_data_to_ref(
+            EXPORTING
+              is_data = orderset_update_entity
+            CHANGING
+              cr_data = er_entity
+          ).
+        ELSE.
+*         In case of initial values - unbind the entity reference
+          er_entity = lr_entity.
+        ENDIF.
+*-------------------------------------------------------------------------*
+*             EntitySet -  releaseOrderSet
+*-------------------------------------------------------------------------*
+      WHEN 'releaseOrderSet'.
+*     Call the entity set generated method
+          releaseorderset_update_entity(
+               EXPORTING iv_entity_name     = iv_entity_name
+                         iv_entity_set_name = iv_entity_set_name
+                         iv_source_name     = iv_source_name
+                         io_data_provider   = io_data_provider
+                         it_key_tab         = it_key_tab
+                         it_navigation_path = it_navigation_path
+                         io_tech_request_context = io_tech_request_context
+             	 IMPORTING er_entity          = releaseorderset_update_entity
+          ).
+       IF releaseorderset_update_entity IS NOT INITIAL.
+*     Send specific entity data to the caller interface
+          copy_data_to_ref(
+            EXPORTING
+              is_data = releaseorderset_update_entity
+            CHANGING
+              cr_data = er_entity
+          ).
+        ELSE.
+*         In case of initial values - unbind the entity reference
+          er_entity = lr_entity.
+        ENDIF.
 *-------------------------------------------------------------------------*
 *             EntitySet -  doTransportCopySet
 *-------------------------------------------------------------------------*
@@ -1571,6 +1625,33 @@ CASE lv_entityset_name.
           copy_data_to_ref(
             EXPORTING
               is_data = dotransportcopys_update_entity
+            CHANGING
+              cr_data = er_entity
+          ).
+        ELSE.
+*         In case of initial values - unbind the entity reference
+          er_entity = lr_entity.
+        ENDIF.
+*-------------------------------------------------------------------------*
+*             EntitySet -  deleteOrdersSet
+*-------------------------------------------------------------------------*
+      WHEN 'deleteOrdersSet'.
+*     Call the entity set generated method
+          deleteordersset_update_entity(
+               EXPORTING iv_entity_name     = iv_entity_name
+                         iv_entity_set_name = iv_entity_set_name
+                         iv_source_name     = iv_source_name
+                         io_data_provider   = io_data_provider
+                         it_key_tab         = it_key_tab
+                         it_navigation_path = it_navigation_path
+                         io_tech_request_context = io_tech_request_context
+             	 IMPORTING er_entity          = deleteordersset_update_entity
+          ).
+       IF deleteordersset_update_entity IS NOT INITIAL.
+*     Send specific entity data to the caller interface
+          copy_data_to_ref(
+            EXPORTING
+              is_data = deleteordersset_update_entity
             CHANGING
               cr_data = er_entity
           ).
@@ -1633,11 +1714,11 @@ CASE lv_entityset_name.
           er_entity = lr_entity.
         ENDIF.
 *-------------------------------------------------------------------------*
-*             EntitySet -  orderSet
+*             EntitySet -  userOrdersSet
 *-------------------------------------------------------------------------*
-      WHEN 'orderSet'.
+      WHEN 'userOrdersSet'.
 *     Call the entity set generated method
-          orderset_update_entity(
+          userordersset_update_entity(
                EXPORTING iv_entity_name     = iv_entity_name
                          iv_entity_set_name = iv_entity_set_name
                          iv_source_name     = iv_source_name
@@ -1645,40 +1726,13 @@ CASE lv_entityset_name.
                          it_key_tab         = it_key_tab
                          it_navigation_path = it_navigation_path
                          io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = orderset_update_entity
+             	 IMPORTING er_entity          = userordersset_update_entity
           ).
-       IF orderset_update_entity IS NOT INITIAL.
+       IF userordersset_update_entity IS NOT INITIAL.
 *     Send specific entity data to the caller interface
           copy_data_to_ref(
             EXPORTING
-              is_data = orderset_update_entity
-            CHANGING
-              cr_data = er_entity
-          ).
-        ELSE.
-*         In case of initial values - unbind the entity reference
-          er_entity = lr_entity.
-        ENDIF.
-*-------------------------------------------------------------------------*
-*             EntitySet -  getUsersOrdersSet
-*-------------------------------------------------------------------------*
-      WHEN 'getUsersOrdersSet'.
-*     Call the entity set generated method
-          getusersordersse_update_entity(
-               EXPORTING iv_entity_name     = iv_entity_name
-                         iv_entity_set_name = iv_entity_set_name
-                         iv_source_name     = iv_source_name
-                         io_data_provider   = io_data_provider
-                         it_key_tab         = it_key_tab
-                         it_navigation_path = it_navigation_path
-                         io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = getusersordersse_update_entity
-          ).
-       IF getusersordersse_update_entity IS NOT INITIAL.
-*     Send specific entity data to the caller interface
-          copy_data_to_ref(
-            EXPORTING
-              is_data = getusersordersse_update_entity
+              is_data = userordersset_update_entity
             CHANGING
               cr_data = er_entity
           ).
@@ -1706,60 +1760,6 @@ CASE lv_entityset_name.
           copy_data_to_ref(
             EXPORTING
               is_data = orderobjectsset_update_entity
-            CHANGING
-              cr_data = er_entity
-          ).
-        ELSE.
-*         In case of initial values - unbind the entity reference
-          er_entity = lr_entity.
-        ENDIF.
-*-------------------------------------------------------------------------*
-*             EntitySet -  deleteOrdersSet
-*-------------------------------------------------------------------------*
-      WHEN 'deleteOrdersSet'.
-*     Call the entity set generated method
-          deleteordersset_update_entity(
-               EXPORTING iv_entity_name     = iv_entity_name
-                         iv_entity_set_name = iv_entity_set_name
-                         iv_source_name     = iv_source_name
-                         io_data_provider   = io_data_provider
-                         it_key_tab         = it_key_tab
-                         it_navigation_path = it_navigation_path
-                         io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = deleteordersset_update_entity
-          ).
-       IF deleteordersset_update_entity IS NOT INITIAL.
-*     Send specific entity data to the caller interface
-          copy_data_to_ref(
-            EXPORTING
-              is_data = deleteordersset_update_entity
-            CHANGING
-              cr_data = er_entity
-          ).
-        ELSE.
-*         In case of initial values - unbind the entity reference
-          er_entity = lr_entity.
-        ENDIF.
-*-------------------------------------------------------------------------*
-*             EntitySet -  releaseOrderSet
-*-------------------------------------------------------------------------*
-      WHEN 'releaseOrderSet'.
-*     Call the entity set generated method
-          releaseorderset_update_entity(
-               EXPORTING iv_entity_name     = iv_entity_name
-                         iv_entity_set_name = iv_entity_set_name
-                         iv_source_name     = iv_source_name
-                         io_data_provider   = io_data_provider
-                         it_key_tab         = it_key_tab
-                         it_navigation_path = it_navigation_path
-                         io_tech_request_context = io_tech_request_context
-             	 IMPORTING er_entity          = releaseorderset_update_entity
-          ).
-       IF releaseorderset_update_entity IS NOT INITIAL.
-*     Send specific entity data to the caller interface
-          copy_data_to_ref(
-            EXPORTING
-              is_data = releaseorderset_update_entity
             CHANGING
               cr_data = er_entity
           ).
@@ -2022,46 +2022,6 @@ lo_logger = /iwbep/if_mgw_conv_srv_runtime~get_logger( ).
   endmethod.
 
 
-  method GETUSERSORDERSSE_CREATE_ENTITY.
-  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
-    EXPORTING
-      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
-      method = 'GETUSERSORDERSSE_CREATE_ENTITY'.
-  endmethod.
-
-
-  method GETUSERSORDERSSE_DELETE_ENTITY.
-  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
-    EXPORTING
-      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
-      method = 'GETUSERSORDERSSE_DELETE_ENTITY'.
-  endmethod.
-
-
-  method GETUSERSORDERSSE_GET_ENTITY.
-  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
-    EXPORTING
-      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
-      method = 'GETUSERSORDERSSE_GET_ENTITY'.
-  endmethod.
-
-
-  method GETUSERSORDERSSE_GET_ENTITYSET.
-  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
-    EXPORTING
-      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
-      method = 'GETUSERSORDERSSE_GET_ENTITYSET'.
-  endmethod.
-
-
-  method GETUSERSORDERSSE_UPDATE_ENTITY.
-  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
-    EXPORTING
-      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
-      method = 'GETUSERSORDERSSE_UPDATE_ENTITY'.
-  endmethod.
-
-
   method ORDEROBJECTSSET_CREATE_ENTITY.
   RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
     EXPORTING
@@ -2219,5 +2179,45 @@ lo_logger = /iwbep/if_mgw_conv_srv_runtime~get_logger( ).
     EXPORTING
       textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
       method = 'SYSTEMSUSERSET_UPDATE_ENTITY'.
+  endmethod.
+
+
+  method USERORDERSSET_CREATE_ENTITY.
+  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
+    EXPORTING
+      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
+      method = 'USERORDERSSET_CREATE_ENTITY'.
+  endmethod.
+
+
+  method USERORDERSSET_DELETE_ENTITY.
+  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
+    EXPORTING
+      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
+      method = 'USERORDERSSET_DELETE_ENTITY'.
+  endmethod.
+
+
+  method USERORDERSSET_GET_ENTITY.
+  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
+    EXPORTING
+      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
+      method = 'USERORDERSSET_GET_ENTITY'.
+  endmethod.
+
+
+  method USERORDERSSET_GET_ENTITYSET.
+  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
+    EXPORTING
+      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
+      method = 'USERORDERSSET_GET_ENTITYSET'.
+  endmethod.
+
+
+  method USERORDERSSET_UPDATE_ENTITY.
+  RAISE EXCEPTION TYPE /iwbep/cx_mgw_not_impl_exc
+    EXPORTING
+      textid = /iwbep/cx_mgw_not_impl_exc=>method_not_implemented
+      method = 'USERORDERSSET_UPDATE_ENTITY'.
   endmethod.
 ENDCLASS.

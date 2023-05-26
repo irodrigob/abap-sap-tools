@@ -5,7 +5,9 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
 
   PUBLIC SECTION.
   PROTECTED SECTION.
-    METHODS getusersordersse_get_entityset REDEFINITION.
+
+    METHODS userordersset_get_entityset REDEFINITION.
+    METHODS userordersset_create_entity REDEFINITION.
     METHODS getsystemstransp_get_entityset REDEFINITION.
     METHODS dotransportcopys_get_entityset REDEFINITION.
     METHODS orderset_update_entity REDEFINITION.
@@ -68,40 +70,7 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD getusersordersse_get_entityset.
 
-    CLEAR: et_entityset.
-
-    DATA(lo_order) = NEW zcl_spt_apps_trans_order(  ).
-
-    DATA(lv_user) = sy-uname.
-    ASSIGN it_filter_select_options[ property = 'orderUser' ]-select_options[ 1 ] TO FIELD-SYMBOL(<ls_select_options>).
-    IF sy-subrc = 0.
-      lv_user = <ls_select_options>-low.
-    ENDIF.
-
-    lo_order->get_user_orders(
-      EXPORTING
-        iv_username          = lv_user
-      iv_type_workbench    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-workbench ] )
-                                     THEN abap_true ELSE abap_false )
-      iv_type_customizing  = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-customizing ] )
-                                     THEN abap_true ELSE abap_false )
-      iv_type_transport    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-transport_copies ] )
-                                     THEN abap_true ELSE abap_false )
-      iv_status_modif      = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-status-changeable ] )
-                                     THEN abap_true ELSE abap_false )
-      iv_status_release    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-status-released ] )
-                                     THEN abap_true ELSE abap_false )
-      iv_release_from_data =  COND #( WHEN line_exists( it_filter_select_options[ property = 'releaseDateFrom' ] )
-                                      THEN it_filter_select_options[ property = 'releaseDateFrom' ]-select_options[ 1 ]-low ELSE sy-datum )
-      iv_release_from_to   = sy-datum
-    IMPORTING
-      et_orders            = DATA(lt_orders) ).
-
-    et_entityset = CORRESPONDING #( lt_orders ).
-
-  ENDMETHOD.
 
 
   METHOD orderobjectsset_get_entityset.
@@ -192,6 +161,69 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
       RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
         EXPORTING
           message_container = message_container.
+    ENDIF.
+  ENDMETHOD.
+
+
+
+  METHOD userordersset_get_entityset.
+    CLEAR: et_entityset.
+
+    DATA(lo_order) = NEW zcl_spt_apps_trans_order(  ).
+
+    DATA(lv_user) = sy-uname.
+    ASSIGN it_filter_select_options[ property = 'orderUser' ]-select_options[ 1 ] TO FIELD-SYMBOL(<ls_select_options>).
+    IF sy-subrc = 0.
+      lv_user = <ls_select_options>-low.
+    ENDIF.
+
+    lo_order->get_user_orders(
+      EXPORTING
+        iv_username          = lv_user
+      iv_type_workbench    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-workbench ] )
+                                     THEN abap_true ELSE abap_false )
+      iv_type_customizing  = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-customizing ] )
+                                     THEN abap_true ELSE abap_false )
+      iv_type_transport    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderType' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-type-transport_copies ] )
+                                     THEN abap_true ELSE abap_false )
+      iv_status_modif      = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-status-changeable ] )
+                                     THEN abap_true ELSE abap_false )
+      iv_status_release    = COND #( WHEN line_exists( it_filter_select_options[ property = 'orderStatus' ]-select_options[ low = zcl_spt_trans_order_data=>cs_orders-status-released ] )
+                                     THEN abap_true ELSE abap_false )
+      iv_release_from_data =  COND #( WHEN line_exists( it_filter_select_options[ property = 'releaseDateFrom' ] )
+                                      THEN it_filter_select_options[ property = 'releaseDateFrom' ]-select_options[ 1 ]-low ELSE sy-datum )
+      iv_release_from_to   = sy-datum
+    IMPORTING
+      et_orders            = DATA(lt_orders) ).
+
+    et_entityset = CORRESPONDING #( lt_orders ).
+  ENDMETHOD.
+
+  METHOD userordersset_create_entity.
+    io_data_provider->read_entry_data( IMPORTING es_data = er_entity ).
+
+    DATA(message_container) = /iwbep/if_mgw_conv_srv_runtime~get_message_container( ).
+
+
+    NEW zcl_spt_apps_trans_order( )->create_order_and_task( EXPORTING iv_type = er_entity-order_type
+                                                                      iv_description = er_entity-order_desc
+                                                                      iv_system      = er_entity-order_system
+                                                                      iv_user        = COND #( WHEN er_entity-order_user IS INITIAL THEN sy-uname ELSE er_entity-order_user )
+                                                            IMPORTING es_return      = DATA(ls_return)
+                                                                      et_order_data  = DATA(lt_order_data) ).
+
+
+    IF ls_return-type = zcl_spt_core_data=>cs_message-type_error.
+      message_container->add_message_text_only(
+        EXPORTING
+          iv_msg_type               = ls_return-type
+          iv_msg_text               = CONV #( ls_return-message ) ).
+
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          message_container = message_container.
+    ELSE.
+      er_entity = CORRESPONDING #( lt_order_data[ 1 ] ).
     ENDIF.
   ENDMETHOD.
 
