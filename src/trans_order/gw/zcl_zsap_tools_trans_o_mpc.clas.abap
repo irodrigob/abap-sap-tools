@@ -98,7 +98,7 @@ public section.
      ORDER_STATUS_DESC type string,
      ORDER_TYPE type TRFUNCTION,
      ORDER_TYPE_DESC type string,
-     ORDER_HAS_OBJECT type FLAG,
+     ORDER_HAS_OBJECTS type FLAG,
      ORDER_SYSTEM type SYSNAME,
      TASK type TRKORR,
      TASK_DESC type string,
@@ -108,7 +108,7 @@ public section.
      TASK_TYPE type string,
      TASK_TYPE_DESC type string,
      RELEASE_DATE_FROM type TIMESTAMP,
-     TASK_HAS_OBJECT type FLAG,
+     TASK_HAS_OBJECTS type FLAG,
   end of TS_USERORDERS .
   types:
     TT_USERORDERS type standard table of TS_USERORDERS .
@@ -1027,7 +1027,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
-lo_property = lo_entity_type->create_property( iv_property_name = 'orderHasObjects' iv_abap_fieldname = 'ORDER_HAS_OBJECT' ). "#EC NOTEXT
+lo_property = lo_entity_type->create_property( iv_property_name = 'orderHasObjects' iv_abap_fieldname = 'ORDER_HAS_OBJECTS' ). "#EC NOTEXT
 lo_property->set_type_edm_boolean( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -1137,7 +1137,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
-lo_property = lo_entity_type->create_property( iv_property_name = 'taskHasObjects' iv_abap_fieldname = 'TASK_HAS_OBJECT' ). "#EC NOTEXT
+lo_property = lo_entity_type->create_property( iv_property_name = 'taskHasObjects' iv_abap_fieldname = 'TASK_HAS_OBJECTS' ). "#EC NOTEXT
 lo_property->set_type_edm_boolean( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -1179,7 +1179,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230526174858'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230603140105'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.
