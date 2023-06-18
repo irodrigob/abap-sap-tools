@@ -16,6 +16,7 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
     METHODS orderobjectsset_get_entityset REDEFINITION.
     METHODS deleteordersset_get_entityset REDEFINITION.
     METHODS orderset_delete_entity REDEFINITION.
+    methods orderobjectsset_delete_entity REDEFINITION.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -225,6 +226,29 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
     ELSE.
       er_entity = CORRESPONDING #( lt_order_data[ 1 ] ).
     ENDIF.
+  ENDMETHOD.
+
+  METHOD orderobjectsset_delete_entity.
+
+
+   DATA(message_container) = /iwbep/if_mgw_conv_srv_runtime~get_message_container( ).
+
+    DATA(lt_return) = NEW zcl_spt_apps_trans_order( )->delete_order_objects( it_objects = value #( (  order = it_key_tab[ name = 'order' ]-value
+                                                                                                      pgmid = it_key_tab[ name = 'pgmid' ]-value
+                                                                                                      object = it_key_tab[ name = 'object' ]-value
+                                                                                                      obj_name = it_key_tab[ name = 'obj_name' ]-value ) ) ).
+
+    IF line_exists( lt_return[ type = zcl_spt_core_data=>cs_message-type_error ] ).
+      message_container->add_message_text_only(
+        EXPORTING
+          iv_msg_type               = lt_return[ type = zcl_spt_core_data=>cs_message-type_error ]-type
+          iv_msg_text               = CONV #( lt_return[ type = zcl_spt_core_data=>cs_message-type_error ]-message ) ).
+
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          message_container = message_container.
+    ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.
