@@ -16,7 +16,7 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
     METHODS orderobjectsset_get_entityset REDEFINITION.
     METHODS deleteordersset_get_entityset REDEFINITION.
     METHODS orderset_delete_entity REDEFINITION.
-    methods orderobjectsset_delete_entity REDEFINITION.
+    METHODS orderobjectsset_delete_entity REDEFINITION.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -194,6 +194,8 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
       iv_release_from_data =  COND #( WHEN line_exists( it_filter_select_options[ property = 'releaseDateFrom' ] )
                                       THEN it_filter_select_options[ property = 'releaseDateFrom' ]-select_options[ 1 ]-low ELSE sy-datum )
       iv_release_from_to   = sy-datum
+      iv_complete_projects =  COND #( WHEN line_exists( it_filter_select_options[ property = 'completeProjects' ] )
+                                      THEN it_filter_select_options[ property = 'completeProjects' ]-select_options[ 1 ]-low ELSE abap_true )
     IMPORTING
       et_orders            = DATA(lt_orders) ).
 
@@ -231,12 +233,12 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
   METHOD orderobjectsset_delete_entity.
 
 
-   DATA(message_container) = /iwbep/if_mgw_conv_srv_runtime~get_message_container( ).
+    DATA(message_container) = /iwbep/if_mgw_conv_srv_runtime~get_message_container( ).
 
-    DATA(lt_return) = NEW zcl_spt_apps_trans_order( )->delete_order_objects( it_objects = value #( (  order = it_key_tab[ name = 'order' ]-value
+    DATA(lt_return) = NEW zcl_spt_apps_trans_order( )->delete_order_objects( it_objects = VALUE #( (  order = it_key_tab[ name = 'order' ]-value
                                                                                                       pgmid = it_key_tab[ name = 'pgmid' ]-value
                                                                                                       object = it_key_tab[ name = 'object' ]-value
-                                                                                                      obj_name = it_key_tab[ name = 'obj_name' ]-value ) ) ).
+                                                                                                      obj_name = it_key_tab[ name = 'objName' ]-value ) ) ).
 
     IF line_exists( lt_return[ type = zcl_spt_core_data=>cs_message-type_error ] ).
       message_container->add_message_text_only(
