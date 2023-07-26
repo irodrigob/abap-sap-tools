@@ -1,59 +1,58 @@
-class ZCX_SPT_TRANS_ORDER definition
-  public
-  inheriting from CX_STATIC_CHECK
-  final
-  create public .
+CLASS zcx_spt_trans_order DEFINITION
+  PUBLIC
+  INHERITING FROM cx_static_check
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces IF_T100_DYN_MSG .
-  interfaces IF_T100_MESSAGE .
+    INTERFACES if_t100_dyn_msg .
+    INTERFACES if_t100_message .
 
-  constants:
-    begin of MESSAGE_OTHER_CLASS,
-      msgid type symsgid value 'ZSPT_TRANS_ORDER',
-      msgno type symsgno value '000',
-      attr1 type scx_attrname value 'MV_MSGV1',
-      attr2 type scx_attrname value '',
-      attr3 type scx_attrname value '',
-      attr4 type scx_attrname value '',
-    end of MESSAGE_OTHER_CLASS .
-  data MV_MSGV1 type STRING .
-  data MV_MSGV2 type STRING .
-  data MV_MSGV3 type STRING .
-  data MV_MSGV4 type STRING .
+    CONSTANTS:
+      BEGIN OF message_other_class,
+        msgid TYPE symsgid VALUE 'ZSPT_TRANS_ORDER',
+        msgno TYPE symsgno VALUE '000',
+        attr1 TYPE scx_attrname VALUE 'MV_MSGV1',
+        attr2 TYPE scx_attrname VALUE '',
+        attr3 TYPE scx_attrname VALUE '',
+        attr4 TYPE scx_attrname VALUE '',
+      END OF message_other_class .
+    DATA mv_msgv1 TYPE string .
+    DATA mv_msgv2 TYPE string .
+    DATA mv_msgv3 TYPE string .
+    DATA mv_msgv4 TYPE string .
 
-  methods CONSTRUCTOR
-    importing
-      !TEXTID like IF_T100_MESSAGE=>T100KEY optional
-      !PREVIOUS like PREVIOUS optional
-      !MV_MSGV1 type STRING optional
-      !MV_MSGV2 type STRING optional
-      !MV_MSGV3 type STRING optional
-      !MV_MSGV4 type STRING optional .
-protected section.
-private section.
+    METHODS constructor
+      IMPORTING
+        !textid   LIKE if_t100_message=>t100key OPTIONAL
+        !previous LIKE previous OPTIONAL
+        !mv_msgv1 TYPE string OPTIONAL
+        !mv_msgv2 TYPE string OPTIONAL
+        !mv_msgv3 TYPE string OPTIONAL
+        !mv_msgv4 TYPE string OPTIONAL .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS ZCX_SPT_TRANS_ORDER IMPLEMENTATION.
+CLASS zcx_spt_trans_order IMPLEMENTATION.
 
 
-  method CONSTRUCTOR.
-CALL METHOD SUPER->CONSTRUCTOR
-EXPORTING
-PREVIOUS = PREVIOUS
-.
-me->MV_MSGV1 = MV_MSGV1 .
-me->MV_MSGV2 = MV_MSGV2 .
-me->MV_MSGV3 = MV_MSGV3 .
-me->MV_MSGV4 = MV_MSGV4 .
-clear me->textid.
-if textid is initial.
-  IF_T100_MESSAGE~T100KEY = IF_T100_MESSAGE=>DEFAULT_TEXTID.
-else.
-  IF_T100_MESSAGE~T100KEY = TEXTID.
-endif.
-  endmethod.
+  METHOD constructor ##ADT_SUPPRESS_GENERATION.
+    CALL METHOD super->constructor
+      EXPORTING
+        previous = previous.
+    me->mv_msgv1 = mv_msgv1 .
+    me->mv_msgv2 = mv_msgv2 .
+    me->mv_msgv3 = mv_msgv3 .
+    me->mv_msgv4 = mv_msgv4 .
+    CLEAR me->textid.
+    IF textid IS INITIAL.
+      if_t100_message~t100key = if_t100_message=>default_textid.
+    ELSE.
+      if_t100_message~t100key = textid.
+    ENDIF.
+  ENDMETHOD.
 ENDCLASS.

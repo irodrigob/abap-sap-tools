@@ -75,6 +75,13 @@ CLASS zcl_spt_apps_trans_order DEFINITION
     TYPES:
            END OF ts_delete_orders.
     TYPES: tt_delete_orders TYPE STANDARD TABLE OF ts_delete_orders WITH EMPTY KEY.
+    TYPES: BEGIN OF ts_move_objects,
+             order    TYPE trkorr,
+             pgmid    TYPE pgmid,
+             object   TYPE trobjtype,
+             obj_name TYPE trobj_name,
+           END OF ts_move_objects.
+    TYPES: tt_move_objects TYPE STANDARD TABLE OF ts_move_objects WITH EMPTY KEY.
     METHODS zif_spt_core_app~get_app_type REDEFINITION.
 
 
@@ -105,7 +112,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         !iv_release_from_data TYPE sy-datum OPTIONAL
         !iv_release_from_to   TYPE sy-datum OPTIONAL
         !iv_get_has_objects   TYPE sap_bool DEFAULT abap_true
-        !iv_complete_projects type sap_bool default abap_true
+        !iv_complete_projects TYPE sap_bool DEFAULT abap_true
       EXPORTING
         et_orders             TYPE tt_orders_task_data.
     "! <p class="shorttext synchronized">Sistemas de transporte</p>
@@ -206,8 +213,17 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         es_return      TYPE zcl_spt_core_data=>ts_return
         ev_order       TYPE trkorr
         et_order_data  TYPE tt_orders_task_data.
+    "! <p class="shorttext synchronized">Mueve los objetos de una orden a otra</p>
+    "! @parameter it_objects | <p class="shorttext synchronized">Objetos</p>
+    "! @parameter iv_to_order | <p class="shorttext synchronized">Orden destino</p>
+    "! @parameter et_return | <p class="shorttext synchronized">Salida del proceso</p>
+    METHODS move_orders_objects
+      IMPORTING it_objects  TYPE tt_move_objects
+                iv_to_order TYPE trkorr
+      EXPORTING et_return   TYPE zcl_spt_core_data=>tt_return.
   PROTECTED SECTION.
     TYPES tt_objects_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY.
+    TYPES: tv_allowed_request_types TYPE c LENGTH 20.
     DATA mt_orders_data TYPE zcl_spt_trans_order_data=>tt_orders_data.
     DATA mo_handle_badi_transport_copy TYPE REF TO zspt_badi_transport_copy.
     DATA mo_order_md TYPE REF TO zcl_spt_apps_trans_order_md.
@@ -291,6 +307,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
                 iv_order       TYPE trkorr
       RETURNING
                 VALUE(rs_data) TYPE trwbo_request_header
+
       RAISING   zcx_spt_trans_order.
     "! <p class="shorttext synchronized">Lectura de datos de la orden y sus tareas</p>
     "! Solo se devuelve la información de cabecera
@@ -341,15 +358,39 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         iv_get_has_objects   TYPE sap_bool DEFAULT abap_true
       RETURNING
         VALUE(rt_order_data) TYPE zcl_spt_apps_trans_order=>tt_orders_task_data.
-
+    "! <p class="shorttext synchronized">Verifica si una orden es modificable</p>
+    "! @parameter is_request_header | <p class="shorttext synchronized">Datos de la orden</p>
+    "! @parameter iv_allowed_request_types | <p class="shorttext synchronized">Tipos de orden/tarea permitidos</p>
+    "! @parameter rs_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS check_request_changeable
+      IMPORTING
+                is_request_header        TYPE trwbo_request_header
+                iv_allowed_request_types TYPE tv_allowed_request_types DEFAULT 'CDFKOPTWS'
+      RETURNING VALUE(rs_return)         TYPE zcl_spt_core_data=>ts_return.
+    "! <p class="shorttext synchronized">Chequea si una orden esta bloqueada</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter rs_return | <p class="shorttext synchronized">Resultado</p>
+    METHODS check_order_locked
+      IMPORTING iv_order         TYPE trkorr
+      RETURNING VALUE(rs_return) TYPE zcl_spt_core_data=>ts_return.
+    "! <p class="shorttext synchronized">Chequea que todas las ordenes no esten bloqueadas</p>
+    "! @parameter it_orders | <p class="shorttext synchronized">Ordenes</p>
+    "! @parameter rs_return | <p class="shorttext synchronized">Resultado</p>
+    METHODS check_orders_locked
+      IMPORTING
+        it_orders        TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING
+        VALUE(rs_return) TYPE zcl_spt_core_data=>ts_return.
   PRIVATE SECTION.
+
+
 
 
 ENDCLASS.
 
 
 
-CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
+CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
 
 
   METHOD call_badi_before_release_order.
@@ -1590,4 +1631,118 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
     es_app-icon = 'shipping-status'.
     es_app-url_help = 'https://github.com/irodrigob/abap-sap-tools-trans-order/wiki'.
   ENDMETHOD.
+  METHOD move_orders_objects.
+
+    CLEAR: et_return.
+
+    TRY.
+
+        DATA(ls_to_order_data) = read_request_complete( EXPORTING iv_order = iv_to_order ).
+        DATA(ls_request_header_to) = CORRESPONDING trwbo_request_header( ls_to_order_data-h ).
+        ls_request_header_to-clients_filled = abap_true.
+
+        " Se verifica si la orden destino se puede modificar
+        DATA(ls_return_check) = check_request_changeable( ls_request_header_to ).
+        IF ls_return_check IS INITIAL.
+          DATA(ls_return_lock) = check_order_locked( iv_to_order ).
+          IF ls_return_lock IS INITIAL.
+
+            DATA(lt_orders_from) = VALUE zcl_spt_trans_order_data=>tt_orders( FOR <wa> IN it_objects ( <wa>-order ) ).
+            SORT lt_orders_from.
+            DELETE ADJACENT DUPLICATES FROM lt_orders_from COMPARING ALL FIELDS.
+            ls_return_lock = check_orders_locked( lt_orders_from ).
+            IF ls_return_lock IS INITIAL.
+
+            ELSE.
+              INSERT ls_return_lock INTO TABLE et_return.
+            ENDIF.
+
+          ELSE.
+            INSERT ls_return_lock INTO TABLE et_return.
+          ENDIF.
+
+        ELSE.
+          INSERT ls_return_check INTO TABLE et_return.
+        ENDIF.
+
+      CATCH zcx_spt_trans_order INTO DATA(lo_excep).
+        INSERT zcl_spt_utilities=>fill_return( iv_type = zcl_spt_core_data=>cs_message-type_error
+                                               iv_id = lo_excep->if_t100_message~t100key-msgid
+                                               iv_number = lo_excep->if_t100_message~t100key-msgno
+                                               iv_message_v1 = lo_excep->mv_msgv1 ) INTO TABLE et_return.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD check_request_changeable.
+
+    CLEAR: rs_return.
+
+    CALL FUNCTION 'TRINT_CHECK_REQUEST_CHANGEABLE'
+      EXPORTING
+        is_request_header         = is_request_header
+        iv_action                 = 'CHAN'
+        iv_allowed_request_types  = iv_allowed_request_types
+      EXCEPTIONS
+        user_has_no_authority     = 2
+        request_from_other_system = 3
+        request_already_released  = 4
+        illegal_request_type      = 5
+        request_from_other_client = 6
+        OTHERS                    = 99.
+
+    IF sy-subrc NE 0.
+      rs_return = VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                                        message = zcl_spt_utilities=>fill_return( iv_type = zcl_spt_core_data=>cs_message-type_error
+                                                                                  iv_id = sy-msgid
+                                                                                  iv_number = sy-msgno
+                                                                                  iv_message_v1 = sy-msgv1
+                                                                                  iv_message_v2 = sy-msgv2
+                                                                                  iv_message_v3 = sy-msgv3
+                                                                                  iv_message_v4 = sy-msgv4
+                                                                                  iv_langu      = mv_langu )-message ).
+    ENDIF.
+  ENDMETHOD.
+
+
+
+  METHOD check_order_locked.
+    CLEAR: rs_return.
+
+    CALL FUNCTION 'ENQUEUE_E_TRKORR'
+      EXPORTING
+        trkorr         = iv_order
+      EXCEPTIONS
+        foreign_lock   = 1
+        system_failure = 2.
+    IF sy-subrc = 0.
+      CALL FUNCTION 'DEQUEUE_E_TRKORR'
+        EXPORTING
+          trkorr = iv_order.
+    ELSE.
+      rs_return = VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                                    message = zcl_spt_utilities=>fill_return( iv_type = zcl_spt_core_data=>cs_message-type_error
+                                                                              iv_id = sy-msgid
+                                                                                  iv_number = sy-msgno
+                                                                                  iv_message_v1 = sy-msgv1
+                                                                              iv_message_v2 = sy-msgv2
+                                                                              iv_message_v3 = sy-msgv3
+                                                                              iv_message_v4 = sy-msgv4
+                                                                              iv_langu      = mv_langu )-message ).
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD check_orders_locked.
+    CLEAR rs_return.
+
+    LOOP AT it_orders ASSIGNING FIELD-SYMBOL(<ls_orders>).
+      DATA(ls_return) = check_order_locked( <ls_orders> ).
+      IF ls_return IS NOT INITIAL.
+        rs_return = ls_return.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+  ENDMETHOD.
+
 ENDCLASS.
