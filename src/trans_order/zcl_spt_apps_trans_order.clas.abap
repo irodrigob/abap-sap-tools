@@ -4,6 +4,12 @@ CLASS zcl_spt_apps_trans_order DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+    TYPES: BEGIN OF ts_objects_key,
+             pgmid    TYPE pgmid,
+             object   TYPE trobjtype,
+             obj_name TYPE trobj_name,
+           END OF ts_objects_key.
+    TYPES: tt_objects_key TYPE STANDARD TABLE OF ts_objects_key WITH EMPTY KEY.
     TYPES: BEGIN OF ts_orders_task_data,
              order             TYPE trkorr,
              order_desc        TYPE string,
@@ -76,10 +82,9 @@ CLASS zcl_spt_apps_trans_order DEFINITION
            END OF ts_delete_orders.
     TYPES: tt_delete_orders TYPE STANDARD TABLE OF ts_delete_orders WITH EMPTY KEY.
     TYPES: BEGIN OF ts_move_objects,
-             order    TYPE trkorr,
-             pgmid    TYPE pgmid,
-             object   TYPE trobjtype,
-             obj_name TYPE trobj_name,
+             order TYPE trkorr.
+        INCLUDE TYPE ts_objects_key.
+    TYPES:
            END OF ts_move_objects.
     TYPES: tt_move_objects TYPE STANDARD TABLE OF ts_move_objects WITH EMPTY KEY.
     METHODS zif_spt_core_app~get_app_type REDEFINITION.
@@ -213,7 +218,7 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         es_return      TYPE zcl_spt_core_data=>ts_return
         ev_order       TYPE trkorr
         et_order_data  TYPE tt_orders_task_data.
-    "! <p class="shorttext synchronized">Mueve los objetos de una orden a otra</p>
+    "! <p class="shorttext synchronized">Mueve los objetos de varias ordenes a una orden</p>
     "! @parameter it_objects | <p class="shorttext synchronized">Objetos</p>
     "! @parameter iv_to_order | <p class="shorttext synchronized">Orden destino</p>
     "! @parameter et_return | <p class="shorttext synchronized">Salida del proceso</p>
@@ -221,6 +226,15 @@ CLASS zcl_spt_apps_trans_order DEFINITION
       IMPORTING it_objects  TYPE tt_move_objects
                 iv_to_order TYPE trkorr
       EXPORTING et_return   TYPE zcl_spt_core_data=>tt_return.
+    "! <p class="shorttext synchronized">Mueve los objetos de una orden a otra</p>
+    "! @parameter it_objects | <p class="shorttext synchronized">Objetos</p>
+    "! @parameter iv_to_order | <p class="shorttext synchronized">Orden destino</p>
+    "! @parameter et_return | <p class="shorttext synchronized">Salida del proceso</p>
+    METHODS move_order_objects
+      IMPORTING it_objects    TYPE tt_objects_key
+                iv_from_order TYPE trkorr
+                iv_to_order   TYPE trkorr
+      EXPORTING et_return     TYPE zcl_spt_core_data=>tt_return.
   PROTECTED SECTION.
     TYPES tt_objects_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY.
     TYPES: tv_allowed_request_types TYPE c LENGTH 20.
@@ -1653,6 +1667,18 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
             ls_return_lock = check_orders_locked( lt_orders_from ).
             IF ls_return_lock IS INITIAL.
 
+              LOOP AT lt_orders_from ASSIGNING FIELD-SYMBOL(<ls_orders_from>).
+                move_order_objects(
+                  EXPORTING
+                    it_objects    =  VALUE #( FOR <object> IN it_objects WHERE ( order = <ls_orders_from> ) ( object = <object>-object
+                                                                                                            obj_name = <object>-obj_name
+                                                                                                            pgmid = <object>-pgmid ) )
+                    iv_from_order = <ls_orders_from>
+                    iv_to_order   = iv_to_order
+                  IMPORTING
+                    et_return     = DATA(lt_return_move) ).
+              ENDLOOP.
+
             ELSE.
               INSERT ls_return_lock INTO TABLE et_return.
             ENDIF.
@@ -1743,6 +1769,10 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
         EXIT.
       ENDIF.
     ENDLOOP.
+  ENDMETHOD.
+
+  METHOD move_order_objects.
+
   ENDMETHOD.
 
 ENDCLASS.
