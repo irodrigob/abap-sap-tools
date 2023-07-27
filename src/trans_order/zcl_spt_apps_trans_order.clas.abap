@@ -395,7 +395,46 @@ CLASS zcl_spt_apps_trans_order DEFINITION
         it_orders        TYPE zcl_spt_trans_order_data=>tt_orders
       RETURNING
         VALUE(rs_return) TYPE zcl_spt_core_data=>ts_return.
+    "! <p class="shorttext synchronized">Añade los objetos a una orden</p>
+    "! @parameter it_e071 | <p class="shorttext synchronized">Objetos</p>
+    "! @parameter it_e071k | <p class="shorttext synchronized">Clave</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter rt_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS add_objects_order
+      IMPORTING
+        it_e071          TYPE trwbo_t_e071
+        it_e071k         TYPE trwbo_t_e071k
+        iv_order         TYPE trkorr
+      RETURNING
+        VALUE(rt_return) TYPE zcl_spt_core_data=>tt_return.
+    "! <p class="shorttext synchronized">Actualiza los objetos a una orden</p>
+    "! Este método es similar al ADD_OBJECTS_ORDER pero la función usada no verifica
+    "! cosas como bloqueos de objetos. Con lo cual es más útil en procesos de mover o copiar objetos.
+    "! @parameter it_e071_add | <p class="shorttext synchronized">Objetos a añadir</p>
+    "! @parameter it_e071k_add | <p class="shorttext synchronized">Claves a añadir</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter rt_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS update_objects_orders
+      IMPORTING
+                it_e071_add      TYPE trwbo_t_e071 OPTIONAL
+                it_e071k_add     TYPE trwbo_t_e071k OPTIONAL
+                iv_order         TYPE trkorr
+      RETURNING
+                VALUE(rt_return) TYPE zcl_spt_core_data=>tt_return
+      RAISING   zcx_spt_trans_order .
+    "! <p class="shorttext synchronized">Bloqueos de objetos en la orden</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter it_e071 | <p class="shorttext synchronized">Objetos a bloquear</p>
+    "! @parameter rt_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS lock_objects
+      IMPORTING
+                iv_order         TYPE trkorr
+                it_e071          TYPE trwbo_t_e071
+      RETURNING
+                VALUE(rt_return) TYPE zcl_spt_core_data=>tt_return
+      RAISING   zcx_spt_trans_order .
   PRIVATE SECTION.
+
 
 
 
@@ -1677,6 +1716,8 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
                     iv_to_order   = iv_to_order
                   IMPORTING
                     et_return     = DATA(lt_return_move) ).
+
+                INSERT LINES OF lt_return_move INTO TABLE et_return.
               ENDLOOP.
 
             ELSE.
@@ -1772,6 +1813,222 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD move_order_objects.
+    DATA lt_e071k TYPE trwbo_t_e071k.
+    DATA lt_e071 TYPE trwbo_t_e071.
+
+    DATA(ls_return_lock) = check_order_locked( iv_to_order ).
+    IF ls_return_lock IS INITIAL.
+      ls_return_lock = check_order_locked( iv_from_order ).
+      IF ls_return_lock IS INITIAL.
+
+        DATA(ls_request) = read_request_complete( EXPORTING iv_order = iv_from_order
+                                                            iv_read_objects     = abap_true ).
+
+        " Se pasan los a las estructuras para pasarlas a las funciones de sap. Quitando el flag de bloqueo porque el bloqueo es
+        " el último paso.
+        LOOP AT it_objects ASSIGNING FIELD-SYMBOL(<ls_objects>).
+          ASSIGN ls_request-objects[ pgmid = <ls_objects>-pgmid
+                                     object = <ls_objects>-object
+                                     obj_name = <ls_objects>-obj_name ] TO FIELD-SYMBOL(<ls_e071>).
+          IF sy-subrc = 0.
+            CLEAR: <ls_e071>-lockflag.
+            <ls_e071>-trkorr = iv_to_order.
+            INSERT <ls_e071> INTO TABLE lt_e071.
+
+            LOOP AT ls_request-keys ASSIGNING FIELD-SYMBOL(<ls_e071k>) WHERE pgmid = <ls_objects>-pgmid
+                                                                             AND object = <ls_objects>-object
+                                                                             AND objname = <ls_objects>-obj_name.
+              <ls_e071k>-trkorr = iv_to_order.
+              INSERT <ls_e071k> INTO TABLE lt_e071k.
+            ENDLOOP.
+          ENDIF.
+
+        ENDLOOP.
+
+        IF lt_e071 IS NOT INITIAL.
+
+          " Se llama a la función de actualizar para que añade los objetos. La función que se usa no valida el bloqueo
+          " en la orden de origen.
+          DATA(lt_return_add) = update_objects_orders( it_e071_add  = lt_e071
+                                                 it_e071k_add = lt_e071k
+                                                 iv_order = iv_to_order ).
+
+          IF line_exists( lt_return_add[ type = zcl_spt_core_data=>cs_message-type_error ] ).
+            INSERT LINES OF lt_return_add INTO TABLE et_return.
+          ELSE.
+            " Se borran los objetos de la orden original.
+            DATA(lt_return_delete) = delete_order_objects( it_objects = VALUE #( FOR <wa> IN it_objects ( order = iv_from_order
+                                                                                                         pgmid = <wa>-pgmid
+                                                                                                         object = <wa>-object
+                                                                                                         obj_name = <wa>-obj_name ) ) ).
+
+            IF line_exists( lt_return_delete[ type = zcl_spt_core_data=>cs_message-type_error ] ).
+              INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                              message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                        iv_number = '019'
+                                                                        iv_message_v1 = iv_from_order
+                                                                        iv_message_v2 = iv_to_order
+                                                                        iv_langu      = mv_langu )-message ) INTO TABLE et_return.
+            ELSE.
+              " Finalmente se bloquean los objetos
+              DATA(lt_return_lock) = lock_objects( iv_order = iv_to_order
+                                                   it_e071  = lt_e071 ).
+              IF line_exists( lt_return_lock[ type = zcl_spt_core_data=>cs_message-type_error ] ).
+                INSERT LINES OF lt_return_lock INTO TABLE et_return.
+              ELSE.
+                INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_success
+                                message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                        iv_number = '021'
+                                                                        iv_message_v1 = iv_from_order
+                                                                        iv_message_v2 = iv_to_order
+                                                                        iv_langu      = mv_langu )-message ) INTO TABLE et_return.
+              ENDIF.
+            ENDIF.
+          ENDIF.
+
+        ELSE.
+          INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                                              message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                                        iv_number = '016'
+                                                                                        iv_message_v1 = iv_from_order
+                                                                                        iv_langu      = mv_langu )-message ) INTO TABLE et_return.
+        ENDIF.
+
+      ELSE.
+        INSERT ls_return_lock INTO TABLE et_return.
+      ENDIF.
+
+    ELSE.
+      INSERT ls_return_lock INTO TABLE et_return.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD add_objects_order.
+
+    CLEAR: rt_return.
+
+    DATA(lt_e071) = it_e071.
+    DATA(lt_e071k) = it_e071k.
+
+    CALL FUNCTION 'TR_APPEND_TO_COMM_OBJS_KEYS'
+      EXPORTING
+        wi_suppress_key_check = 'X'    " Flag whether key syntax check is suppressed
+        wi_trkorr             = iv_order
+      TABLES
+        wt_e071               = lt_e071
+        wt_e071k              = lt_e071k
+      EXCEPTIONS
+        OTHERS                = 68.
+    IF sy-subrc = 0.
+      INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_success
+                                                   message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                                             iv_number = '017'
+                                                                                             iv_message_v1 = iv_order
+                                                                                             iv_langu      = mv_langu )-message ) INTO TABLE rt_return.
+    ELSE.
+      INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                                 message = zcl_spt_utilities=>fill_return( iv_id = sy-msgid
+                                                                           iv_number = sy-msgno
+                                                                           iv_message_v1 = sy-msgv1
+                                                                           iv_message_v2 = sy-msgv2
+                                                                           iv_message_v3 = sy-msgv3
+                                                                           iv_message_v4 = sy-msgv4
+                                                                           iv_langu      = mv_langu )-message ) INTO TABLE rt_return.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD update_objects_orders.
+
+    DATA(ls_request) = read_request_complete( iv_order = iv_order
+                                              iv_read_objects = abap_true ).
+
+
+    IF it_e071_add IS NOT INITIAL.
+      INSERT LINES OF it_e071_add INTO TABLE ls_request-objects.
+    ENDIF.
+    IF it_e071k_add IS NOT INITIAL.
+      INSERT LINES OF it_e071k_add INTO TABLE ls_request-keys.
+    ENDIF.
+
+    DATA(ls_e070) = CORRESPONDING e070( ls_request-h ).
+
+    CALL FUNCTION 'TRINT_UPDATE_COMM'
+      EXPORTING
+        wi_trkorr          = iv_order
+        wi_e070            = ls_e070
+        wi_sel_e071        = 'X'
+        wi_sel_e071k       = 'X'
+        wi_direct_add_flag = 'X'
+      TABLES
+        wt_e071            = ls_request-objects
+        wt_e071k           = ls_request-keys
+      CHANGING
+        wt_e071k_str       = ls_request-keys_str
+      EXCEPTIONS
+        OTHERS             = 1.
+    IF sy-subrc = 0.
+      INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_success
+                                                   message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                                             iv_number = '018'
+                                                                                             iv_message_v1 = iv_order
+                                                                                             iv_langu      = mv_langu )-message ) INTO TABLE rt_return.
+    ELSE.
+      INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                                 message = zcl_spt_utilities=>fill_return(
+                                                                           iv_id = sy-msgid
+                                                                           iv_number = sy-msgno
+                                                                           iv_message_v1 = sy-msgv1
+                                                                           iv_message_v2 = sy-msgv2
+                                                                           iv_message_v3 = sy-msgv3
+                                                                           iv_message_v4 = sy-msgv4
+                                                                           iv_langu      = mv_langu )-message ) INTO TABLE rt_return.
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD lock_objects.
+    DATA lv_edit TYPE sap_bool.
+    DATA(ls_request) = read_request( iv_order = iv_order ).
+    DATA lt_messages TYPE ctsgerrmsgs .
+
+    CLEAR rt_return.
+
+    lv_edit = COND #( WHEN ls_request-trfunction CA sctsc_types_tasks THEN abap_true ELSE abap_false ).
+
+    LOOP AT it_e071 INTO DATA(ls_e071).
+      ls_e071-lockflag = abap_true.
+      CALL FUNCTION 'TRINT_LOCK_OBJECT'
+        EXPORTING
+          is_request_header = ls_request
+          iv_edit           = lv_edit
+          iv_collect_mode   = 'X'
+        CHANGING
+          cs_object         = ls_e071
+          ct_messages       = lt_messages.
+
+      IF lt_messages IS INITIAL.
+        INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_success
+                        message = zcl_spt_utilities=>fill_return( iv_id = zcl_spt_trans_order_data=>cs_message-id
+                                                                  iv_number = '020'
+                                                                  iv_message_v1 = ls_e071-pgmid
+                                                                  iv_message_v2 = ls_e071-object
+                                                                  iv_message_v3 = ls_e071-obj_name
+                                                                  iv_langu      = mv_langu )-message ) INTO TABLE rt_return.
+      ELSE.
+        LOOP AT lt_messages ASSIGNING FIELD-SYMBOL(<ls_messages>).
+          INSERT VALUE #( type = <ls_messages>-msgty
+                                 message = zcl_spt_utilities=>fill_return( iv_id = <ls_messages>-msgid
+                                                                           iv_number = <ls_messages>-msgno
+                                                                           iv_message_v1 = <ls_messages>-msgv1
+                                                                           iv_message_v2 = <ls_messages>-msgv2
+                                                                           iv_message_v3 = <ls_messages>-msgv3
+                                                                           iv_langu      = mv_langu )-message ) INTO TABLE rt_return.
+        ENDLOOP.
+      ENDIF.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
