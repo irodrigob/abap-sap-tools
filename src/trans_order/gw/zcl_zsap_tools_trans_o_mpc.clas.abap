@@ -6,10 +6,10 @@ class ZCL_ZSAP_TOOLS_TRANS_O_MPC definition
 public section.
 
   types:
-        begin of RETURN,
+        begin of RETURNTYPE,
         TYPE type string,
         MESSAGE type string,
-    end of RETURN .
+    end of RETURNTYPE .
   types:
        begin of ts_text_element,
       artifact_name  type c length 40,       " technical name
@@ -33,7 +33,7 @@ public section.
      TASK type TRKORR,
      STATUS type TRSTATUS,
      STATUS_DESC type string,
-     RETURN type RETURN,
+     RETURN type RETURNTYPE,
   end of TS_RELEASEORDER .
   types:
     TT_RELEASEORDER type standard table of TS_RELEASEORDER .
@@ -50,7 +50,7 @@ public section.
      GENNUM type TRGENNUM,
      LANG type SPRAS,
      ACTIVITY type TRACTIVITY,
-     RETURN type RETURN,
+     RETURN type RETURNTYPE,
   end of TS_ORDEROBJECTS .
   types:
     TT_ORDEROBJECTS type standard table of TS_ORDEROBJECTS .
@@ -69,7 +69,7 @@ public section.
      SYSTEM type string,
      ORDER_DESCRIPTION type string,
      ORDER_CREATED type TRKORR,
-     RETURN type RETURN,
+     RETURN type RETURNTYPE,
   end of TS_DOTRANSPORTCOPY .
   types:
     TT_DOTRANSPORTCOPY type standard table of TS_DOTRANSPORTCOPY .
@@ -85,7 +85,7 @@ public section.
       begin of TS_DELETEORDERS,
      ORDER type TRKORR,
      TASK type TRKORR,
-     RETURN type RETURN,
+     RETURN type RETURNTYPE,
   end of TS_DELETEORDERS .
   types:
     TT_DELETEORDERS type standard table of TS_DELETEORDERS .
@@ -113,14 +113,39 @@ public section.
   end of TS_USERORDERS .
   types:
     TT_USERORDERS type standard table of TS_USERORDERS .
+  types:
+      begin of TS_MOVEOBJECTS,
+     ORDER_TO type TRKORR,
+  end of TS_MOVEOBJECTS .
+  types:
+    TT_MOVEOBJECTS type standard table of TS_MOVEOBJECTS .
+  types:
+      begin of TS_ORDEROBJECTSKEY,
+     ORDER type TRKORR,
+     PGMID type PGMID,
+     OBJECT type TROBJTYPE,
+     OBJ_NAME type TROBJ_NAME,
+  end of TS_ORDEROBJECTSKEY .
+  types:
+    TT_ORDEROBJECTSKEY type standard table of TS_ORDEROBJECTSKEY .
+  types:
+      begin of TS_RETURN,
+     TYPE type string,
+     MESSAGE type string,
+  end of TS_RETURN .
+  types:
+    TT_RETURN type standard table of TS_RETURN .
 
   constants GC_DELETEORDERS type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'deleteOrders' ##NO_TEXT.
   constants GC_DOTRANSPORTCOPY type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'doTransportCopy' ##NO_TEXT.
   constants GC_GETSYSTEMSTRANSPORT type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'getSystemsTransport' ##NO_TEXT.
+  constants GC_MOVEOBJECTS type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'moveObjects' ##NO_TEXT.
   constants GC_ORDER type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'order' ##NO_TEXT.
   constants GC_ORDEROBJECTS type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'orderObjects' ##NO_TEXT.
+  constants GC_ORDEROBJECTSKEY type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'orderObjectsKey' ##NO_TEXT.
   constants GC_RELEASEORDER type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'releaseOrder' ##NO_TEXT.
   constants GC_RETURN type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'return' ##NO_TEXT.
+  constants GC_RETURNTYPE type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'returnType' ##NO_TEXT.
   constants GC_SYSTEMSUSER type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'systemsUser' ##NO_TEXT.
   constants GC_USERORDERS type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'userOrders' ##NO_TEXT.
 
@@ -165,6 +190,18 @@ private section.
   methods DEFINE_USERORDERS
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_MOVEOBJECTS
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_ORDEROBJECTSKEY
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_RETURN
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_ASSOCIATIONS
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
 ENDCLASS.
 
 
@@ -192,6 +229,84 @@ define_dotransportcopy( ).
 define_order( ).
 define_deleteorders( ).
 define_userorders( ).
+define_moveobjects( ).
+define_orderobjectskey( ).
+define_return( ).
+define_associations( ).
+  endmethod.
+
+
+  method DEFINE_ASSOCIATIONS.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+
+
+data:
+lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                   "#EC NEEDED
+lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                   "#EC NEEDED
+lo_association    type ref to /iwbep/if_mgw_odata_assoc,                        "#EC NEEDED
+lo_ref_constraint type ref to /iwbep/if_mgw_odata_ref_constr,                   "#EC NEEDED
+lo_assoc_set      type ref to /iwbep/if_mgw_odata_assoc_set,                    "#EC NEEDED
+lo_nav_property   type ref to /iwbep/if_mgw_odata_nav_prop.                     "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ASSOCIATIONS
+***********************************************************************************************************************************
+
+ lo_association = model->create_association(
+                            iv_association_name = 'moveObjects_orderObjectsKey' "#EC NOTEXT
+                            iv_left_type        = 'moveObjects' "#EC NOTEXT
+                            iv_right_type       = 'orderObjectsKey' "#EC NOTEXT
+                            iv_right_card       = 'N' "#EC NOTEXT
+                            iv_left_card        = '1'  "#EC NOTEXT
+                            iv_def_assoc_set    = abap_false ). "#EC NOTEXT
+lo_assoc_set = model->create_association_set( iv_association_set_name  = 'moveObjects_orderObjectsKeySet'                         "#EC NOTEXT
+                                              iv_left_entity_set_name  = 'moveObjectsSet'              "#EC NOTEXT
+                                              iv_right_entity_set_name = 'orderObjectsKeySet'             "#EC NOTEXT
+                                              iv_association_name      = 'moveObjects_orderObjectsKey' ).                                 "#EC NOTEXT
+
+ lo_association = model->create_association(
+                            iv_association_name = 'moveObjects_return' "#EC NOTEXT
+                            iv_left_type        = 'moveObjects' "#EC NOTEXT
+                            iv_right_type       = 'return' "#EC NOTEXT
+                            iv_right_card       = 'M' "#EC NOTEXT
+                            iv_left_card        = '1'  "#EC NOTEXT
+                            iv_def_assoc_set    = abap_false ). "#EC NOTEXT
+lo_assoc_set = model->create_association_set( iv_association_set_name  = 'moveObjects_returnSet'                         "#EC NOTEXT
+                                              iv_left_entity_set_name  = 'moveObjectsSet'              "#EC NOTEXT
+                                              iv_right_entity_set_name = 'returnSet'             "#EC NOTEXT
+                                              iv_association_name      = 'moveObjects_return' ).                                 "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   NAVIGATION PROPERTIES
+***********************************************************************************************************************************
+
+* Navigation Properties for entity - moveObjects
+lo_entity_type = model->get_entity_type( iv_entity_name = 'moveObjects' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'returnSet' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'RETURNSET' "#EC NOTEXT
+                                                              iv_association_name = 'moveObjects_return' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'orderObjectsKeySet' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'ORDEROBJECTSKEYSET' "#EC NOTEXT
+                                                              iv_association_name = 'moveObjects_orderObjectsKey' ). "#EC NOTEXT
+* Navigation Properties for entity - orderObjectsKey
+lo_entity_type = model->get_entity_type( iv_entity_name = 'orderObjectsKey' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'moveObjects' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'MOVEOBJECTS' "#EC NOTEXT
+                                                              iv_association_name = 'moveObjects_orderObjectsKey' ). "#EC NOTEXT
+* Navigation Properties for entity - return
+lo_entity_type = model->get_entity_type( iv_entity_name = 'return' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'moveObjects' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'MOVEOBJECTS' "#EC NOTEXT
+                                                              iv_association_name = 'moveObjects_return' ). "#EC NOTEXT
   endmethod.
 
 
@@ -211,9 +326,9 @@ define_userorders( ).
        lo_property       type ref to /iwbep/if_mgw_odata_property.                "#EC NEEDED
 
 ***********************************************************************************************************************************
-*   COMPLEX TYPE - return
+*   COMPLEX TYPE - returnType
 ***********************************************************************************************************************************
-lo_complex_type = model->create_complex_type( 'return' ). "#EC NOTEXT
+lo_complex_type = model->create_complex_type( 'returnType' ). "#EC NOTEXT
 
 ***********************************************************************************************************************************
 *Properties
@@ -232,7 +347,7 @@ lo_property->set_updatable( abap_false ).
 lo_property->set_sortable( abap_false ).
 lo_property->set_nullable( abap_false ).
 lo_property->set_filterable( abap_false ).
-lo_complex_type->bind_structure( iv_structure_name = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>RETURN' ). "#EC NOTEXT
+lo_complex_type->bind_structure( iv_structure_name = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>RETURNTYPE' ). "#EC NOTEXT
   endmethod.
 
 
@@ -287,7 +402,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_complex_type = lo_entity_type->create_complex_property( iv_property_name = 'return'
-                                                           iv_complex_type_name = 'return'
+                                                           iv_complex_type_name = 'returnType'
                                                            iv_abap_fieldname    = 'RETURN' ). "#EC NOTEXT
 
 lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_DELETEORDERS' ). "#EC NOTEXT
@@ -394,7 +509,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_complex_type = lo_entity_type->create_complex_property( iv_property_name = 'return'
-                                                           iv_complex_type_name = 'return'
+                                                           iv_complex_type_name = 'returnType'
                                                            iv_abap_fieldname    = 'RETURN' ). "#EC NOTEXT
 
 lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_DOTRANSPORTCOPY' ). "#EC NOTEXT
@@ -486,6 +601,66 @@ lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC
 *   ENTITY SETS
 ***********************************************************************************************************************************
 lo_entity_set = lo_entity_type->create_entity_set( 'getSystemsTransportSet' ). "#EC NOTEXT
+
+lo_entity_set->set_creatable( abap_false ).
+lo_entity_set->set_updatable( abap_false ).
+lo_entity_set->set_deletable( abap_false ).
+
+lo_entity_set->set_pageable( abap_false ).
+lo_entity_set->set_addressable( abap_false ).
+lo_entity_set->set_has_ftxt_search( abap_false ).
+lo_entity_set->set_subscribable( abap_false ).
+lo_entity_set->set_filter_required( abap_false ).
+  endmethod.
+
+
+  method DEFINE_MOVEOBJECTS.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+  data:
+        lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                "#EC NEEDED
+        lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                "#EC NEEDED
+        lo_complex_type   type ref to /iwbep/if_mgw_odata_cmplx_type,                "#EC NEEDED
+        lo_property       type ref to /iwbep/if_mgw_odata_property,                  "#EC NEEDED
+        lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ENTITY - moveObjects
+***********************************************************************************************************************************
+
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'moveObjects' iv_def_entity_set = abap_false ). "#EC NOTEXT
+
+***********************************************************************************************************************************
+*Properties
+***********************************************************************************************************************************
+
+lo_property = lo_entity_type->create_property( iv_property_name = 'orderTo' iv_abap_fieldname = 'ORDER_TO' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_MOVEOBJECTS' ). "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   ENTITY SETS
+***********************************************************************************************************************************
+lo_entity_set = lo_entity_type->create_entity_set( 'moveObjectsSet' ). "#EC NOTEXT
 
 lo_entity_set->set_creatable( abap_false ).
 lo_entity_set->set_updatable( abap_false ).
@@ -736,7 +911,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_complex_type = lo_entity_type->create_complex_property( iv_property_name = 'return'
-                                                           iv_complex_type_name = 'return'
+                                                           iv_complex_type_name = 'returnType'
                                                            iv_abap_fieldname    = 'RETURN' ). "#EC NOTEXT
 
 lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_ORDEROBJECTS' ). "#EC NOTEXT
@@ -746,6 +921,102 @@ lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC
 *   ENTITY SETS
 ***********************************************************************************************************************************
 lo_entity_set = lo_entity_type->create_entity_set( 'orderObjectsSet' ). "#EC NOTEXT
+
+lo_entity_set->set_creatable( abap_false ).
+lo_entity_set->set_updatable( abap_false ).
+lo_entity_set->set_deletable( abap_false ).
+
+lo_entity_set->set_pageable( abap_false ).
+lo_entity_set->set_addressable( abap_false ).
+lo_entity_set->set_has_ftxt_search( abap_false ).
+lo_entity_set->set_subscribable( abap_false ).
+lo_entity_set->set_filter_required( abap_false ).
+  endmethod.
+
+
+  method DEFINE_ORDEROBJECTSKEY.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+  data:
+        lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                "#EC NEEDED
+        lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                "#EC NEEDED
+        lo_complex_type   type ref to /iwbep/if_mgw_odata_cmplx_type,                "#EC NEEDED
+        lo_property       type ref to /iwbep/if_mgw_odata_property,                  "#EC NEEDED
+        lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ENTITY - orderObjectsKey
+***********************************************************************************************************************************
+
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'orderObjectsKey' iv_def_entity_set = abap_false ). "#EC NOTEXT
+
+***********************************************************************************************************************************
+*Properties
+***********************************************************************************************************************************
+
+lo_property = lo_entity_type->create_property( iv_property_name = 'order' iv_abap_fieldname = 'ORDER' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_true ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'pgmid' iv_abap_fieldname = 'PGMID' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'object' iv_abap_fieldname = 'OBJECT' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'objName' iv_abap_fieldname = 'OBJ_NAME' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_ORDEROBJECTSKEY' ). "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   ENTITY SETS
+***********************************************************************************************************************************
+lo_entity_set = lo_entity_type->create_entity_set( 'orderObjectsKeySet' ). "#EC NOTEXT
 
 lo_entity_set->set_creatable( abap_false ).
 lo_entity_set->set_updatable( abap_false ).
@@ -832,7 +1103,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_complex_type = lo_entity_type->create_complex_property( iv_property_name = 'return'
-                                                           iv_complex_type_name = 'return'
+                                                           iv_complex_type_name = 'returnType'
                                                            iv_abap_fieldname    = 'RETURN' ). "#EC NOTEXT
 
 lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_RELEASEORDER' ). "#EC NOTEXT
@@ -842,6 +1113,77 @@ lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC
 *   ENTITY SETS
 ***********************************************************************************************************************************
 lo_entity_set = lo_entity_type->create_entity_set( 'releaseOrderSet' ). "#EC NOTEXT
+
+lo_entity_set->set_creatable( abap_false ).
+lo_entity_set->set_updatable( abap_false ).
+lo_entity_set->set_deletable( abap_false ).
+
+lo_entity_set->set_pageable( abap_false ).
+lo_entity_set->set_addressable( abap_false ).
+lo_entity_set->set_has_ftxt_search( abap_false ).
+lo_entity_set->set_subscribable( abap_false ).
+lo_entity_set->set_filter_required( abap_false ).
+  endmethod.
+
+
+  method DEFINE_RETURN.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+  data:
+        lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                "#EC NEEDED
+        lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                "#EC NEEDED
+        lo_complex_type   type ref to /iwbep/if_mgw_odata_cmplx_type,                "#EC NEEDED
+        lo_property       type ref to /iwbep/if_mgw_odata_property,                  "#EC NEEDED
+        lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ENTITY - return
+***********************************************************************************************************************************
+
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'return' iv_def_entity_set = abap_false ). "#EC NOTEXT
+
+***********************************************************************************************************************************
+*Properties
+***********************************************************************************************************************************
+
+lo_property = lo_entity_type->create_property( iv_property_name = 'type' iv_abap_fieldname = 'TYPE' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'message' iv_abap_fieldname = 'MESSAGE' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANS_O_MPC=>TS_RETURN' ). "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   ENTITY SETS
+***********************************************************************************************************************************
+lo_entity_set = lo_entity_type->create_entity_set( 'returnSet' ). "#EC NOTEXT
 
 lo_entity_set->set_creatable( abap_false ).
 lo_entity_set->set_updatable( abap_false ).
@@ -1194,7 +1536,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230719160245'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230729155924'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.

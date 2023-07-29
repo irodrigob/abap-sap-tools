@@ -140,6 +140,12 @@
      <MSGNR>021</MSGNR>
      <TEXT>Objects successfully moved from order &amp; to order &amp;</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANS_ORDER</ARBGB>
+     <MSGNR>022</MSGNR>
+     <TEXT>Object &amp; &amp; &amp; not exist</TEXT>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>

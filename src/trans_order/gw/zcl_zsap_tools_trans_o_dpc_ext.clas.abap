@@ -4,6 +4,7 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+    METHODS /iwbep/if_mgw_appl_srv_runtime~create_deep_entity REDEFINITION.
   PROTECTED SECTION.
 
     METHODS userordersset_get_entityset REDEFINITION.
@@ -17,6 +18,22 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext DEFINITION
     METHODS deleteordersset_get_entityset REDEFINITION.
     METHODS orderset_delete_entity REDEFINITION.
     METHODS orderobjectsset_delete_entity REDEFINITION.
+
+    METHODS move_objects_entity
+      IMPORTING
+        !iv_entity_name          TYPE string OPTIONAL
+        !iv_entity_set_name      TYPE string OPTIONAL
+        !iv_source_name          TYPE string OPTIONAL
+        !io_data_provider        TYPE REF TO /iwbep/if_mgw_entry_provider
+        !it_key_tab              TYPE /iwbep/t_mgw_name_value_pair OPTIONAL
+        !it_navigation_path      TYPE /iwbep/t_mgw_navigation_path OPTIONAL
+        !io_expand               TYPE REF TO /iwbep/if_mgw_odata_expand
+        !io_tech_request_context TYPE REF TO /iwbep/if_mgw_req_entity_c OPTIONAL
+      EXPORTING
+        !er_deep_entity          TYPE REF TO data
+      RAISING
+        /iwbep/cx_mgw_busi_exception
+        /iwbep/cx_mgw_tech_exception .
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -250,6 +267,47 @@ CLASS zcl_zsap_tools_trans_o_dpc_ext IMPLEMENTATION.
         EXPORTING
           message_container = message_container.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD /iwbep/if_mgw_appl_srv_runtime~create_deep_entity.
+
+    CASE iv_entity_name.
+      WHEN 'moveObjects'.
+        move_objects_entity(
+          EXPORTING
+            iv_entity_name               = iv_entity_name
+            iv_entity_set_name           = iv_entity_set_name
+            iv_source_name               = iv_source_name
+            io_data_provider             = io_data_provider
+            it_key_tab                   = it_key_tab
+            it_navigation_path           = it_navigation_path
+            io_expand                    = io_expand
+            io_tech_request_context      = io_tech_request_context
+          IMPORTING
+            er_deep_entity               = er_deep_entity ).
+    ENDCASE.
+
+
+  ENDMETHOD.
+
+  METHOD move_objects_entity.
+    DATA ls_data TYPE zcl_zsap_tools_trans_o_mpc_ext=>ts_move_objects_deep.
+
+    io_data_provider->read_entry_data( IMPORTING es_data = ls_data ).
+
+    NEW zcl_spt_apps_trans_order( )->move_orders_objects( EXPORTING it_objects  = CONV #( ls_data-orderobjectskeyset )
+                                                                    iv_order_to = ls_data-order_to
+                                                          IMPORTING et_return   =  DATA(lt_return) ).
+
+    ls_data-returnset = CORRESPONDING #( lt_return ).
+
+
+    CALL METHOD me->/iwbep/if_mgw_conv_srv_runtime~copy_data_to_ref
+      EXPORTING
+        is_data = ls_data
+      CHANGING
+        cr_data = er_deep_entity.
 
   ENDMETHOD.
 
