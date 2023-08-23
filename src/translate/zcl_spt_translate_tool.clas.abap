@@ -21,7 +21,18 @@ CLASS zcl_spt_translate_tool DEFINITION
     CONSTANTS mc_style_wo_trans TYPE raw4 VALUE '0000000F'. "#EC NOTEXT
     CONSTANTS mc_style_prop_wo_conf TYPE raw4 VALUE '0000000C'. "#EC NOTEXT
     CONSTANTS mc_style_prop_conf TYPE raw4 VALUE '0000000E'. "#EC NOTEXT
-    CONSTANTS mc_style_text_changed TYPE raw4 VALUE '0000000A'. "#EC NOTEXT
+    CONSTANTS mc_style_text_changed TYPE raw4 VALUE '0000000A'.
+    CLASS-METHODS fill_return
+      IMPORTING
+         i_type         TYPE any
+         i_number       TYPE any
+         i_message_v1   TYPE any OPTIONAL
+         i_message_v2   TYPE any OPTIONAL
+         i_message_v3   TYPE any OPTIONAL
+         i_message_v4   TYPE any OPTIONAL
+         i_id           TYPE any OPTIONAL
+      RETURNING
+        VALUE(r_return) TYPE bapiret2 . "#EC NOTEXT
 
     METHODS constructor .
 
@@ -124,17 +135,7 @@ CLASS zcl_spt_translate_tool DEFINITION
         !i_language        TYPE lxeisolang
       RETURNING
         VALUE(r_fieldname) TYPE fieldname .
-    CLASS-METHODS fill_return
-      IMPORTING
-        !i_type         TYPE any
-        !i_number       TYPE any
-        !i_message_v1   TYPE any OPTIONAL
-        !i_message_v2   TYPE any OPTIONAL
-        !i_message_v3   TYPE any OPTIONAL
-        !i_message_v4   TYPE any OPTIONAL
-        !i_id           TYPE any OPTIONAL
-      RETURNING
-        VALUE(r_return) TYPE bapiret2 .
+
     METHODS get_ref_text_object
       IMPORTING
         !i_object   TYPE trobjtype
@@ -515,7 +516,7 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
 * Se no se pasa una clase de mensaje se pone la generica de la aplicación.
     IF i_id IS NOT SUPPLIED.
-      r_return-id = 'ZTRANSLATE_TOOL'.
+      r_return-id = 'ZSPT_TRANS_ORDER'.
     ELSE.
       r_return-id = i_id.
     ENDIF.
