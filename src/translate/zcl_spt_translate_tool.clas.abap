@@ -24,15 +24,15 @@ CLASS zcl_spt_translate_tool DEFINITION
     CONSTANTS mc_style_text_changed TYPE raw4 VALUE '0000000A'.
     CLASS-METHODS fill_return
       IMPORTING
-         i_type         TYPE any
-         i_number       TYPE any
-         i_message_v1   TYPE any OPTIONAL
-         i_message_v2   TYPE any OPTIONAL
-         i_message_v3   TYPE any OPTIONAL
-         i_message_v4   TYPE any OPTIONAL
-         i_id           TYPE any OPTIONAL
+        i_type          TYPE any
+        i_number        TYPE any
+        i_message_v1    TYPE any OPTIONAL
+        i_message_v2    TYPE any OPTIONAL
+        i_message_v3    TYPE any OPTIONAL
+        i_message_v4    TYPE any OPTIONAL
+        i_id            TYPE any OPTIONAL
       RETURNING
-        VALUE(r_return) TYPE bapiret2 . "#EC NOTEXT
+        VALUE(r_return) TYPE bapiret2 .                     "#EC NOTEXT
 
     METHODS constructor .
 
@@ -78,6 +78,20 @@ CLASS zcl_spt_translate_tool DEFINITION
     "! <p class="shorttext synchronized">Devuelve los lenguajes</p>
     METHODS get_languages
       RETURNING VALUE(rt_languages) TYPE tt_languages.
+    "! <p class="shorttext synchronized">Verifica que la orden es correcta</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter rs_return | <p class="shorttext synchronized">Retorno del proceso</p>
+    METHODS check_order
+      IMPORTING iv_order         TYPE trkorr
+      RETURNING VALUE(rs_return) TYPE bapiret2.
+    "! <p class="shorttext synchronized">Tarea valida de la orden</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    "! @parameter ev_task | <p class="shorttext synchronized">Tarea</p>
+    "! @parameter es_return | <p class="shorttext synchronized">Retorno del proceso</p>
+    METHODS get_task_from_order
+      IMPORTING iv_order  TYPE trkorr
+      EXPORTING ev_task   TYPE trkorr
+                es_return TYPE bapiret2.
   PROTECTED SECTION.
 
 *"* protected components of class ZTRANSLATE_TOOL
@@ -1063,6 +1077,112 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
   ENDMETHOD.
   METHOD get_languages.
     rt_languages = mt_languages.
+  ENDMETHOD.
+
+  METHOD check_order.
+    DATA ls_request TYPE trwbo_request_header.
+
+    CLEAR: rs_return.
+
+    ls_request = VALUE #( trkorr = iv_order ).
+
+
+    CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
+      EXPORTING
+        iv_read_e070   = abap_true
+      CHANGING
+        cs_request     = ls_request
+      EXCEPTIONS
+        empty_trkorr   = 1
+        not_exist_e070 = 2
+        OTHERS         = 99.
+    IF sy-subrc NE 0.
+      rs_return = fill_return( i_type       = 'E'
+                               i_number     = sy-msgno
+                               i_message_v1 = sy-msgv1
+                               i_message_v2 = sy-msgv2
+                               i_message_v3 = sy-msgv3
+                               i_message_v4 = sy-msgv4
+                               i_id         = sy-msgid ).
+
+    ENDIF.
+  ENDMETHOD.
+
+  METHOD get_task_from_order.
+    DATA lt_req_head TYPE trwbo_request_headers.
+    DATA lt_req TYPE trwbo_requests.
+
+    DATA(lv_order) = iv_order.
+
+    CLEAR: es_return, ev_task.
+
+    CALL FUNCTION 'TR_READ_REQUEST_WITH_TASKS'
+      EXPORTING
+        iv_trkorr          = lv_order
+      IMPORTING
+        et_request_headers = lt_req_head
+        et_requests        = lt_req
+      EXCEPTIONS
+        invalid_input      = 1
+        OTHERS             = 2.
+    IF sy-subrc = 0.
+      " Se mira si hay alguna tarea valida para el usuario.
+      LOOP AT lt_req_head ASSIGNING FIELD-SYMBOL(<ls_req_head>) WHERE trfunction = zcl_spt_trans_order_data=>cs_orders-type-development
+                                                        AND trstatus = zcl_spt_trans_order_data=>cs_orders-status-changeable
+                                                        AND as4user = sy-uname.
+        EXIT.
+      ENDLOOP.
+      IF sy-subrc = 0.
+        ev_task = <ls_req_head>-trkorr.
+      ELSE.
+        " Se busca la orden. Si la orden no tiene tareas entonces el primer registro que será el de la orden.
+        LOOP AT lt_req_head ASSIGNING <ls_req_head> WHERE strkorr IS NOT INITIAL.
+          EXIT.
+        ENDLOOP.
+        IF sy-subrc NE 0.
+          ASSIGN lt_req_head[ 1 ] TO <ls_req_head>.
+          <ls_req_head>-strkorr = lv_order.
+        ENDIF.
+
+        CALL FUNCTION 'TRINT_INSERT_NEW_COMM'
+          EXPORTING
+            wi_kurztext       = <ls_req_head>-as4text
+            wi_trfunction     = zcl_spt_trans_order_data=>cs_orders-type-development
+            iv_username       = sy-uname
+            wi_strkorr        = <ls_req_head>-strkorr
+            wi_client         = sy-mandt
+          IMPORTING
+            we_trkorr         = ev_task
+          EXCEPTIONS
+            no_systemname     = 1
+            no_systemtype     = 2
+            no_authorization  = 3
+            db_access_error   = 4
+            file_access_error = 5
+            enqueue_error     = 6
+            number_range_full = 7
+            invalid_input     = 8
+            OTHERS            = 9.
+        IF sy-subrc NE 0.
+          es_return = fill_return( i_type       = 'E'
+                                i_number     = sy-msgno
+                                i_message_v1 = sy-msgv1
+                                i_message_v2 = sy-msgv2
+                                i_message_v3 = sy-msgv3
+                                i_message_v4 = sy-msgv4
+                                i_id         = sy-msgid ).
+        ENDIF.
+      ENDIF.
+    ELSE.
+      es_return = fill_return( i_type       = 'E'
+                                    i_number     = sy-msgno
+                                    i_message_v1 = sy-msgv1
+                                    i_message_v2 = sy-msgv2
+                                    i_message_v3 = sy-msgv3
+                                    i_message_v4 = sy-msgv4
+                                    i_id         = sy-msgid ).
+    ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.

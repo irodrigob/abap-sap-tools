@@ -13,6 +13,7 @@ CLASS zcl_spt_trans_order_data DEFINITION
                    transport_copies TYPE trfunction VALUE 'T',
                    workbench        TYPE trfunction VALUE 'K',
                    customizing      TYPE trfunction VALUE 'W',
+                   development      TYPE trfunction VALUE 'S',
                  END OF type,
                  BEGIN OF status,
                    changeable        TYPE trstatus VALUE 'D',
