@@ -109,7 +109,7 @@ CLASS zcl_spt_translate_lxe DEFINITION
     METHODS get_masterlang .
     METHODS read_proposal
       IMPORTING
-        !it_pcx_s1      TYPE tt_pcx_s1
+        !it_pcx_s1        TYPE tt_pcx_s1
         !is_colob         TYPE lxe_colob
       EXPORTING
         !et_best_proposal TYPE tt_pcx_s2
@@ -175,7 +175,7 @@ CLASS zcl_spt_translate_lxe IMPLEMENTATION.
 
 * Leo todas las clases que heredan de la clase principal de traducciones.
     SELECT * FROM vseoextend INTO TABLE lt_classlist
-      WHERE refclsname = 'ZCL_TRANSLATE_LXE'
+      WHERE refclsname = 'ZCL_SPT_TRANSLATE_LXE'
       AND version = '1'.
     IF sy-subrc = 0.
       LOOP AT lt_classlist ASSIGNING <ls_classlist>.
@@ -481,7 +481,7 @@ CLASS zcl_spt_translate_lxe IMPLEMENTATION.
 * Leo la propuestas de los textos obtenidos
         CALL METHOD read_proposal
           EXPORTING
-            it_pcx_s1      = lt_lxe_texts
+            it_pcx_s1        = lt_lxe_texts
             is_colob         = <ls_colob>
           IMPORTING
             et_best_proposal = lt_best_pcx_s2

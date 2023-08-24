@@ -1,14 +1,27 @@
-class ZCL_ZSAP_TOOLS_TRANSLA_MPC_EXT definition
-  public
-  inheriting from ZCL_ZSAP_TOOLS_TRANSLA_MPC
-  create public .
+CLASS zcl_zsap_tools_transla_mpc_ext DEFINITION
+  PUBLIC
+  INHERITING FROM zcl_zsap_tools_transla_mpc
+  CREATE PUBLIC .
 
-public section.
-protected section.
-private section.
+  PUBLIC SECTION.
+    TYPES: BEGIN OF ts_objecttranlsate_deep.
+        INCLUDE TYPE zcl_zsap_tools_transla_mpc=>ts_objecttranslate.
+    TYPES:
+      objecttextset TYPE STANDARD TABLE OF zcl_zsap_tools_transla_mpc=>ts_objecttext WITH DEFAULT KEY,
+      END OF ts_objecttranlsate_deep.
+    METHODS define REDEFINITION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS ZCL_ZSAP_TOOLS_TRANSLA_MPC_EXT IMPLEMENTATION.
+CLASS zcl_zsap_tools_transla_mpc_ext IMPLEMENTATION.
+  METHOD define.
+    super->define(  ).
+
+    DATA(lo_entity_type) = model->get_entity_type( iv_entity_name = 'objectTranslate' ).
+    lo_entity_type->bind_structure( iv_structure_name = 'ZCL_ZSAP_TOOLS_TRANSLA_MPC_EXT=>TS_OBJECTTRANLSATE_DEEP' ).
+  ENDMETHOD.
+
 ENDCLASS.

@@ -30,22 +30,22 @@ public section.
   types:
     TT_SELECTABLEOBJECTS type standard table of TS_SELECTABLEOBJECTS .
   types:
-      begin of TS_OBJECTSTRANSLATE,
+      begin of TS_OBJECTTRANSLATE,
      OBJECT type TROBJTYPE,
      OBJ_NAME type SOBJ_NAME,
      OLANG type string,
      TLANG type string,
-     TRKORR type string,
+     ORDER type TRKORR,
      DEPTH_REFS type /IWBEP/SB_ODATA_TY_INT2,
-  end of TS_OBJECTSTRANSLATE .
+  end of TS_OBJECTTRANSLATE .
   types:
-    TT_OBJECTSTRANSLATE type standard table of TS_OBJECTSTRANSLATE .
+    TT_OBJECTTRANSLATE type standard table of TS_OBJECTTRANSLATE .
   types:
-      begin of TS_OBJECTSTEXT,
-     OBJECT type string,
-     OBJ_NAME type string,
-     OBJTYPE type string,
-     ID_TEXT type string,
+      begin of TS_OBJECTTEXT,
+     OBJECT type TROBJTYPE,
+     OBJ_NAME type SOBJ_NAME,
+     OBJTYPE type LXEOBJTYPE,
+     ID_TEXT type LXETEXTKEY,
      LANG_OLANG type string,
      COL_OLANG type string,
      TXT_OLANG type string,
@@ -79,13 +79,21 @@ public section.
      LANG_TLANG10 type string,
      COL_TLANG10 type string,
      TXT_TLANG10 type string,
-  end of TS_OBJECTSTEXT .
+  end of TS_OBJECTTEXT .
   types:
-    TT_OBJECTSTEXT type standard table of TS_OBJECTSTEXT .
+    TT_OBJECTTEXT type standard table of TS_OBJECTTEXT .
+  types:
+      begin of TS_RETURN,
+     TYPE type string,
+     MESSAGE type string,
+  end of TS_RETURN .
+  types:
+    TT_RETURN type standard table of TS_RETURN .
 
   constants GC_LANGUAGES type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'languages' ##NO_TEXT.
-  constants GC_OBJECTSTEXT type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'objectsText' ##NO_TEXT.
-  constants GC_OBJECTSTRANSLATE type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'objectsTranslate' ##NO_TEXT.
+  constants GC_OBJECTTEXT type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'objectText' ##NO_TEXT.
+  constants GC_OBJECTTRANSLATE type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'objectTranslate' ##NO_TEXT.
+  constants GC_RETURN type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'return' ##NO_TEXT.
   constants GC_SELECTABLEOBJECTS type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'selectableObjects' ##NO_TEXT.
 
   methods LOAD_TEXT_ELEMENTS
@@ -108,10 +116,16 @@ private section.
   methods DEFINE_SELECTABLEOBJECTS
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
-  methods DEFINE_OBJECTSTRANSLATE
+  methods DEFINE_OBJECTTRANSLATE
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
-  methods DEFINE_OBJECTSTEXT
+  methods DEFINE_OBJECTTEXT
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_RETURN
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_ASSOCIATIONS
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
 ENDCLASS.
@@ -134,8 +148,64 @@ model->set_schema_namespace( 'ZSAP_TOOLS_TRANSLATE_SRV' ).
 
 define_languages( ).
 define_selectableobjects( ).
-define_objectstranslate( ).
-define_objectstext( ).
+define_objecttranslate( ).
+define_objecttext( ).
+define_return( ).
+define_associations( ).
+  endmethod.
+
+
+  method DEFINE_ASSOCIATIONS.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+
+
+data:
+lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                   "#EC NEEDED
+lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                   "#EC NEEDED
+lo_association    type ref to /iwbep/if_mgw_odata_assoc,                        "#EC NEEDED
+lo_ref_constraint type ref to /iwbep/if_mgw_odata_ref_constr,                   "#EC NEEDED
+lo_assoc_set      type ref to /iwbep/if_mgw_odata_assoc_set,                    "#EC NEEDED
+lo_nav_property   type ref to /iwbep/if_mgw_odata_nav_prop.                     "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ASSOCIATIONS
+***********************************************************************************************************************************
+
+ lo_association = model->create_association(
+                            iv_association_name = 'objectTranslate_objectText' "#EC NOTEXT
+                            iv_left_type        = 'objectTranslate' "#EC NOTEXT
+                            iv_right_type       = 'objectText' "#EC NOTEXT
+                            iv_right_card       = 'M' "#EC NOTEXT
+                            iv_left_card        = '1'  "#EC NOTEXT
+                            iv_def_assoc_set    = abap_false ). "#EC NOTEXT
+lo_assoc_set = model->create_association_set( iv_association_set_name  = 'objectTranslate_objectTextSet'                         "#EC NOTEXT
+                                              iv_left_entity_set_name  = 'objectTranslateSet'              "#EC NOTEXT
+                                              iv_right_entity_set_name = 'objectTextSet'             "#EC NOTEXT
+                                              iv_association_name      = 'objectTranslate_objectText' ).                                 "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   NAVIGATION PROPERTIES
+***********************************************************************************************************************************
+
+* Navigation Properties for entity - objectTranslate
+lo_entity_type = model->get_entity_type( iv_entity_name = 'objectTranslate' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'objectTextSet' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'OBJECTTEXTSET' "#EC NOTEXT
+                                                              iv_association_name = 'objectTranslate_objectText' ). "#EC NOTEXT
+* Navigation Properties for entity - objectText
+lo_entity_type = model->get_entity_type( iv_entity_name = 'objectText' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'objectTranslate' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'OBJECTTRANSLATE' "#EC NOTEXT
+                                                              iv_association_name = 'objectTranslate_objectText' ). "#EC NOTEXT
   endmethod.
 
 
@@ -244,7 +314,7 @@ lo_entity_set->set_filter_required( abap_false ).
   endmethod.
 
 
-  method DEFINE_OBJECTSTEXT.
+  method DEFINE_OBJECTTEXT.
 *&---------------------------------------------------------------------*
 *&           Generated code for the MODEL PROVIDER BASE CLASS         &*
 *&                                                                     &*
@@ -262,10 +332,10 @@ lo_entity_set->set_filter_required( abap_false ).
         lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
 
 ***********************************************************************************************************************************
-*   ENTITY - objectsText
+*   ENTITY - objectText
 ***********************************************************************************************************************************
 
-lo_entity_type = model->create_entity_type( iv_entity_type_name = 'objectsText' iv_def_entity_set = abap_false ). "#EC NOTEXT
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'objectText' iv_def_entity_set = abap_false ). "#EC NOTEXT
 
 ***********************************************************************************************************************************
 *Properties
@@ -683,13 +753,13 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 
-lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANSLA_MPC=>TS_OBJECTSTEXT' ). "#EC NOTEXT
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANSLA_MPC=>TS_OBJECTTEXT' ). "#EC NOTEXT
 
 
 ***********************************************************************************************************************************
 *   ENTITY SETS
 ***********************************************************************************************************************************
-lo_entity_set = lo_entity_type->create_entity_set( 'objectsTextSet' ). "#EC NOTEXT
+lo_entity_set = lo_entity_type->create_entity_set( 'objectTextSet' ). "#EC NOTEXT
 
 lo_entity_set->set_creatable( abap_false ).
 lo_entity_set->set_updatable( abap_false ).
@@ -703,7 +773,7 @@ lo_entity_set->set_filter_required( abap_false ).
   endmethod.
 
 
-  method DEFINE_OBJECTSTRANSLATE.
+  method DEFINE_OBJECTTRANSLATE.
 *&---------------------------------------------------------------------*
 *&           Generated code for the MODEL PROVIDER BASE CLASS         &*
 *&                                                                     &*
@@ -721,10 +791,10 @@ lo_entity_set->set_filter_required( abap_false ).
         lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
 
 ***********************************************************************************************************************************
-*   ENTITY - objectsTranslate
+*   ENTITY - objectTranslate
 ***********************************************************************************************************************************
 
-lo_entity_type = model->create_entity_type( iv_entity_type_name = 'objectsTranslate' iv_def_entity_set = abap_false ). "#EC NOTEXT
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'objectTranslate' iv_def_entity_set = abap_false ). "#EC NOTEXT
 
 ***********************************************************************************************************************************
 *Properties
@@ -777,7 +847,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
-lo_property = lo_entity_type->create_property( iv_property_name = 'order' iv_abap_fieldname = 'TRKORR' ). "#EC NOTEXT
+lo_property = lo_entity_type->create_property( iv_property_name = 'order' iv_abap_fieldname = 'ORDER' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -789,7 +859,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'depthRefs' iv_abap_fieldname = 'DEPTH_REFS' ). "#EC NOTEXT
-lo_property->set_type_edm_int16( ).
+lo_property->set_type_edm_sbyte( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
 lo_property->set_sortable( abap_false ).
@@ -800,13 +870,84 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 
-lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANSLA_MPC=>TS_OBJECTSTRANSLATE' ). "#EC NOTEXT
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANSLA_MPC=>TS_OBJECTTRANSLATE' ). "#EC NOTEXT
 
 
 ***********************************************************************************************************************************
 *   ENTITY SETS
 ***********************************************************************************************************************************
-lo_entity_set = lo_entity_type->create_entity_set( 'objectsTranslateSet' ). "#EC NOTEXT
+lo_entity_set = lo_entity_type->create_entity_set( 'objectTranslateSet' ). "#EC NOTEXT
+
+lo_entity_set->set_creatable( abap_false ).
+lo_entity_set->set_updatable( abap_false ).
+lo_entity_set->set_deletable( abap_false ).
+
+lo_entity_set->set_pageable( abap_false ).
+lo_entity_set->set_addressable( abap_false ).
+lo_entity_set->set_has_ftxt_search( abap_false ).
+lo_entity_set->set_subscribable( abap_false ).
+lo_entity_set->set_filter_required( abap_false ).
+  endmethod.
+
+
+  method DEFINE_RETURN.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+  data:
+        lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                "#EC NEEDED
+        lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                "#EC NEEDED
+        lo_complex_type   type ref to /iwbep/if_mgw_odata_cmplx_type,                "#EC NEEDED
+        lo_property       type ref to /iwbep/if_mgw_odata_property,                  "#EC NEEDED
+        lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ENTITY - return
+***********************************************************************************************************************************
+
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'return' iv_def_entity_set = abap_false ). "#EC NOTEXT
+
+***********************************************************************************************************************************
+*Properties
+***********************************************************************************************************************************
+
+lo_property = lo_entity_type->create_property( iv_property_name = 'type' iv_abap_fieldname = 'TYPE' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'message' iv_abap_fieldname = 'MESSAGE' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANSLA_MPC=>TS_RETURN' ). "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   ENTITY SETS
+***********************************************************************************************************************************
+lo_entity_set = lo_entity_type->create_entity_set( 'returnSet' ). "#EC NOTEXT
 
 lo_entity_set->set_creatable( abap_false ).
 lo_entity_set->set_updatable( abap_false ).
@@ -918,7 +1059,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230824115218'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230824140643'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.

@@ -483,7 +483,7 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
       IF sy-subrc = 0.
         CALL METHOD change_text_fcat(
           EXPORTING
-            i_text = <ls_languages>-language
+            i_text = <ls_languages>-text_lang
           CHANGING
             c_fcat = ls_fcat ).
       ELSE.
