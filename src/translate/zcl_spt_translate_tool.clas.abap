@@ -6,15 +6,16 @@ CLASS zcl_spt_translate_tool DEFINITION
 *"* do not include other source files here!!!
   PUBLIC SECTION.
     TYPES: BEGIN OF ts_languages,
-             r3_lang      TYPE lxe_t002x-r3_lang,
-             lxe_language TYPE lxe_t002x-language,
-             text_lang    TYPE lxe_t002x-text_lang,
-             language     TYPE lxe_t002x-langshort,
+             r3_lang           TYPE lxe_t002x-r3_lang,
+             lxe_language      TYPE lxe_t002x-language,
+             text_lang         TYPE lxe_t002x-text_lang,
+             language          TYPE lxe_t002x-langshort,
+             lxe_language_sort TYPE lxe_t002x-language,
            END OF ts_languages.
     TYPES: tt_languages TYPE STANDARD TABLE OF ts_languages WITH EMPTY KEY.
     DATA mv_object TYPE trobjtype READ-ONLY .
     DATA mv_obj_name TYPE sobj_name READ-ONLY .
-    CONSTANTS mc_field_txt_lang TYPE bsstring VALUE 'FIELD_'. "#EC NOTEXT
+    CONSTANTS mcvfield_txt_lang TYPE bsstring VALUE 'FIELD_'. "#EC NOTEXT
     CONSTANTS mc_field_ctrl_lang TYPE bsstring VALUE 'UPDKZ_'. "#EC NOTEXT
     CONSTANTS mv_struc_main_fields TYPE tabname VALUE 'ZSPT_TRANSLATE_MAIN_FIELDS'. "#EC NOTEXT
     CONSTANTS mc_field_style TYPE fieldname VALUE 'FIELD_STYLE'. "#EC NOTEXT
@@ -70,7 +71,7 @@ CLASS zcl_spt_translate_tool DEFINITION
     METHODS get_tlang
       RETURNING
         VALUE(rt_tlang) TYPE lxe_tt_lxeisolang .
-    METHODS get_name_field_text
+    CLASS-METHODS get_name_field_text
       IMPORTING
         !iv_language        TYPE lxeisolang
       RETURNING
@@ -612,11 +613,14 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
   METHOD read_languages.
 
-    SELECT r3_lang language AS lxe_language text_lang langshort AS language INTO TABLE mt_languages
+    SELECT r3_lang language AS lxe_language text_lang langshort AS language INTO CORRESPONDING FIELDS OF TABLE mt_languages
            FROM lxe_t002x
            WHERE is_r3_lang = abap_true
                 AND r3_lang NE ''.
 
+    LOOP AT mt_languages ASSIGNING FIELD-SYMBOL(<ls_languages>).
+      <ls_languages>-lxe_language_sort = |{ <ls_languages>-lxe_language CASE = UPPER }|.
+    ENDLOOP.
   ENDMETHOD.
 
 
@@ -627,7 +631,7 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
 
   METHOD get_name_field_text.
-    CONCATENATE mc_field_txt_lang iv_language INTO rv_fieldname.
+    CONCATENATE mcvfield_txt_lang iv_language INTO rv_fieldname.
     TRANSLATE rv_fieldname TO UPPER CASE.
   ENDMETHOD.
 
