@@ -15,8 +15,16 @@ CLASS zcl_spt_translate_tool DEFINITION
     TYPES: tt_languages TYPE STANDARD TABLE OF ts_languages WITH EMPTY KEY.
     DATA mv_object TYPE trobjtype READ-ONLY .
     DATA mv_obj_name TYPE sobj_name READ-ONLY .
-    CONSTANTS mcvfield_txt_lang TYPE bsstring VALUE 'FIELD_'. "#EC NOTEXT
-    CONSTANTS mc_field_ctrl_lang TYPE bsstring VALUE 'UPDKZ_'. "#EC NOTEXT
+    CONSTANTS: BEGIN OF cs_fields_itab,
+                 txt_lang   TYPE fieldname VALUE 'FIELD_',
+                 ctrl_lang  TYPE fieldname VALUE 'UPDKZ_',
+                 ppsal_type TYPE fieldname VALUE 'TEXT_PPSAL_TYPE',
+               END OF cs_fields_itab.
+    CONSTANTS: BEGIN OF cs_text_ppsal_type,
+                 without_text     TYPE zspt_e_text_proposal_type VALUE 'WT',
+                 ppsal_confirmed  TYPE zspt_e_text_proposal_type VALUE 'PC',
+                 ppsal_wo_confirm TYPE zspt_e_text_proposal_type VALUE 'PW',
+               END OF cs_text_ppsal_type.
     CONSTANTS mv_struc_main_fields TYPE tabname VALUE 'ZSPT_TRANSLATE_MAIN_FIELDS'. "#EC NOTEXT
     CONSTANTS mc_field_style TYPE fieldname VALUE 'FIELD_STYLE'. "#EC NOTEXT
     CONSTANTS mc_style_wo_trans TYPE raw4 VALUE '0000000F'. "#EC NOTEXT
@@ -93,6 +101,14 @@ CLASS zcl_spt_translate_tool DEFINITION
       IMPORTING iv_order  TYPE trkorr
       EXPORTING ev_task   TYPE trkorr
                 es_return TYPE bapiret2.
+    "! <p class="shorttext synchronized">Campo del tipo de propuesta de texto</p>
+    "! @parameter iv_language | <p class="shorttext synchronized">Idioma</p>
+    "! @parameter rv_fieldname | <p class="shorttext synchronized">Campo</p>
+    CLASS-METHODS get_name_field_ppsal_type
+      IMPORTING
+        iv_language         TYPE lxeisolang
+      RETURNING
+        VALUE(rv_fieldname) TYPE fieldname .
   PROTECTED SECTION.
 
 *"* protected components of class ZTRANSLATE_TOOL
@@ -150,6 +166,7 @@ CLASS zcl_spt_translate_tool DEFINITION
         !i_language        TYPE lxeisolang
       RETURNING
         VALUE(r_fieldname) TYPE fieldname .
+
 
     METHODS get_ref_text_object
       IMPORTING
@@ -499,13 +516,19 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
 * Campo de control
       CLEAR ls_fcat.
-      CONCATENATE mc_field_ctrl_lang <ls_dlang> INTO ls_fcat-fieldname.
-      TRANSLATE ls_fcat-fieldname TO UPPER CASE.
+      ls_fcat-fieldname = get_name_field_ctrl( <ls_dlang> ).
       ls_fcat-rollname = 'SAP_BOOL'.
       ls_fcat-tech = abap_true.
       ls_fcat-col_pos = ld_col_pos.
       APPEND ls_fcat TO lt_fcat_aux.
       ADD 1 TO ld_col_pos.
+
+      " Campo para indicar el tipo de texto en la propuesta.
+      INSERT VALUE #( fieldname = get_name_field_ppsal_type( <ls_dlang> )
+                      rollname = |ZSPT_E_TEXT_PROPOSAL_TYPE|
+                      tech = abap_true
+                      col_pos = ld_col_pos ) INTO TABLE lt_fcat_aux.
+      ld_col_pos = ld_col_pos + 1.
     ENDLOOP.
 
 * Se añaden los campos de idioma al catalogo de campos principal
@@ -625,13 +648,13 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
 
   METHOD get_name_field_ctrl.
-    CONCATENATE mc_field_ctrl_lang i_language INTO r_fieldname.
+    CONCATENATE cs_fields_itab-ctrl_lang i_language INTO r_fieldname.
     TRANSLATE r_fieldname TO UPPER CASE.
   ENDMETHOD.
 
 
   METHOD get_name_field_text.
-    CONCATENATE mcvfield_txt_lang iv_language INTO rv_fieldname.
+    CONCATENATE cs_fields_itab-txt_lang iv_language INTO rv_fieldname.
     TRANSLATE rv_fieldname TO UPPER CASE.
   ENDMETHOD.
 
@@ -724,6 +747,8 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
     ASSIGN COMPONENT ld_field_text OF STRUCTURE cs_wa TO <field>.
     IF sy-subrc = 0.
 
+      ASSIGN COMPONENT get_name_field_ppsal_type( i_tlang ) OF STRUCTURE cs_wa TO FIELD-SYMBOL(<ppsal_type>).
+
       IF <field> IS INITIAL.
 * Recupero la mejor propuesta para el campo
         CALL METHOD io_object_text->get_best_text_proposal
@@ -741,9 +766,15 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 * Si no hay texto ni por propuesta ni por origen se pone el color de no hay traduccion
         IF <field> IS INITIAL.
           ls_field_style-style = mc_style_wo_trans.
+          IF <ppsal_type> IS ASSIGNED.
+            <ppsal_type> = cs_text_ppsal_type-without_text.
+          ENDIF.
 * Si hay texto por la propuesta pero el original no lo tenia, se pone el texto de pdte de confirmacion.
         ELSEIF is_texts-t_text IS INITIAL.
           ls_field_style-style = mc_style_prop_wo_conf.
+          IF <ppsal_type> IS ASSIGNED.
+            <ppsal_type> = cs_text_ppsal_type-ppsal_wo_confirm.
+          ENDIF.
         ELSE.
 * Si el texto esta informado compruebo si el texto esta dentro de las propuestas
 * para el texto. Según el resultado el color de la celda varia.
@@ -751,8 +782,14 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
                                                         iv_textkey = is_texts-textkey
                                                         iv_objtype = is_texts-objtype ) = abap_true.
             ls_field_style-style = mc_style_prop_conf.
+            IF <ppsal_type> IS ASSIGNED.
+              <ppsal_type> = cs_text_ppsal_type-ppsal_confirmed.
+            ENDIF.
           ELSE.
             ls_field_style-style = mc_style_prop_wo_conf.
+            IF <ppsal_type> IS ASSIGNED.
+              <ppsal_type> = cs_text_ppsal_type-ppsal_wo_confirm.
+            ENDIF.
           ENDIF.
         ENDIF.
         INSERT ls_field_style INTO TABLE <field_style>.
@@ -1187,6 +1224,11 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
                                     i_id         = sy-msgid ).
     ENDIF.
 
+  ENDMETHOD.
+
+  METHOD get_name_field_ppsal_type.
+    rv_fieldname = |{ cs_fields_itab-ppsal_type }_{ iv_language }|.
+    rv_fieldname = |{ rv_fieldname CASE = UPPER }|.
   ENDMETHOD.
 
 ENDCLASS.

@@ -53,33 +53,43 @@ public section.
      LANG_TLANG1 type string,
      COL_TLANG1 type string,
      TXT_TLANG1 type string,
+     PPSAL_TYPE_TLANG1 type string,
      LANG_TLANG2 type string,
      COL_TLANG2 type string,
      TXT_TLANG2 type string,
+     PPSAL_TYPE_TLANG2 type string,
      LANG_TLANG3 type string,
      COL_TLANG3 type string,
      TXT_TLANG3 type string,
+     PPSAL_TYPE_TLANG3 type string,
      LANG_TLANG4 type string,
      COL_TLANG4 type string,
      TXT_TLANG4 type string,
+     PPSAL_TYPE_TLANG4 type string,
      LANG_TLANG5 type string,
      COL_TLANG5 type string,
      TXT_TLANG5 type string,
+     PPSAL_TYPE_TLANG5 type string,
      LANG_TLANG6 type string,
      COL_TLANG6 type string,
      TXT_TLANG6 type string,
+     PPSAL_TYPE_TLANG6 type string,
      LANG_TLANG7 type string,
      COL_TLANG7 type string,
      TXT_TLANG7 type string,
+     PPSAL_TYPE_TLANG7 type string,
      LANG_TLANG8 type string,
      COL_TLANG8 type string,
      TXT_TLANG8 type string,
+     PPSAL_TYPE_TLANG8 type string,
      LANG_TLANG9 type string,
      COL_TLANG9 type string,
      TXT_TLANG9 type string,
+     PPSAL_TYPE_TLANG9 type string,
      LANG_TLANG10 type string,
      COL_TLANG10 type string,
      TXT_TLANG10 type string,
+     PPSAL_TYPE_TLANG10 type string,
   end of TS_OBJECTTEXT .
   types:
     TT_OBJECTTEXT type standard table of TS_OBJECTTEXT .
@@ -456,6 +466,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang1' iv_abap_fieldname = 'PPSAL_TYPE_TLANG1' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'langTlang2' iv_abap_fieldname = 'LANG_TLANG2' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
@@ -479,6 +500,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'txtTlang2' iv_abap_fieldname = 'TXT_TLANG2' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang2' iv_abap_fieldname = 'PPSAL_TYPE_TLANG2' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -522,6 +554,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang3' iv_abap_fieldname = 'PPSAL_TYPE_TLANG3' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'langTlang4' iv_abap_fieldname = 'LANG_TLANG4' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
@@ -545,6 +588,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'txtTlang4' iv_abap_fieldname = 'TXT_TLANG4' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang4' iv_abap_fieldname = 'PPSAL_TYPE_TLANG4' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -588,6 +642,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang5' iv_abap_fieldname = 'PPSAL_TYPE_TLANG5' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'langTlang6' iv_abap_fieldname = 'LANG_TLANG6' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
@@ -611,6 +676,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'txtTlang6' iv_abap_fieldname = 'TXT_TLANG6' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang6' iv_abap_fieldname = 'PPSAL_TYPE_TLANG6' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -654,6 +730,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang7' iv_abap_fieldname = 'PPSAL_TYPE_TLANG7' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'langTlang8' iv_abap_fieldname = 'LANG_TLANG8' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
@@ -677,6 +764,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'txtTlang8' iv_abap_fieldname = 'TXT_TLANG8' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang8' iv_abap_fieldname = 'PPSAL_TYPE_TLANG8' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -720,6 +818,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang9' iv_abap_fieldname = 'PPSAL_TYPE_TLANG9' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'langTlang10' iv_abap_fieldname = 'LANG_TLANG10' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
@@ -743,6 +852,17 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
         iv_key      = 'unicode'
         iv_value    = 'false' ).
 lo_property = lo_entity_type->create_property( iv_property_name = 'txtTlang10' iv_abap_fieldname = 'TXT_TLANG10' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'ppsalTypeTlang10' iv_abap_fieldname = 'PPSAL_TYPE_TLANG10' ). "#EC NOTEXT
 lo_property->set_type_edm_string( ).
 lo_property->set_creatable( abap_false ).
 lo_property->set_updatable( abap_false ).
@@ -1071,7 +1191,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230826135811'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230827113143'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.

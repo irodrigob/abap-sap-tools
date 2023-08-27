@@ -142,14 +142,23 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
                 <langt_lang> = <ls_language>-lxe_language.
               ENDIF.
 
-              ASSIGN COMPONENT |COL_TLANG{ lv_count }| OF STRUCTURE <ls_texts> TO FIELD-SYMBOL(<ls_col_tlang>).
+              ASSIGN COMPONENT |COL_TLANG{ lv_count }| OF STRUCTURE <ls_texts> TO FIELD-SYMBOL(<col_tlang_serv>).
               IF sy-subrc = 0.
-                <ls_col_tlang> = <ls_fcat>-reptext.
+                <col_tlang_serv> = <ls_fcat>-reptext.
               ENDIF.
 
-              ASSIGN COMPONENT |TXT_TLANG{ lv_count }| OF STRUCTURE <ls_texts> TO FIELD-SYMBOL(<ls_txt_tlang>).
+              ASSIGN COMPONENT |TXT_TLANG{ lv_count }| OF STRUCTURE <ls_texts> TO FIELD-SYMBOL(<txt_tlang_serv>).
               IF sy-subrc = 0.
-                <ls_txt_tlang> = <txt_tlang>.
+                <txt_tlang_serv> = <txt_tlang>.
+              ENDIF.
+
+              ASSIGN COMPONENT zcl_spt_translate_tool=>get_name_field_ppsal_type( <ls_language>-lxe_language ) OF STRUCTURE <wa> TO FIELD-SYMBOL(<ppsal_type>).
+              IF sy-subrc = 0.
+                ASSIGN COMPONENT |PPSAL_TYPE_TLANG{ lv_count }| OF STRUCTURE <ls_texts> TO FIELD-SYMBOL(<ppsal_type_tlang>).
+                IF sy-subrc = 0.
+                  <ppsal_type_tlang> = <ppsal_type>.
+                ENDIF.
+
               ENDIF.
 
               lv_count = lv_count + 1.
