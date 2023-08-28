@@ -1,4 +1,4 @@
-CLASS zcl_spt_apps_tranlate DEFINITION
+CLASS zcl_spt_apps_translate DEFINITION
   PUBLIC
   INHERITING FROM zcl_spt_apps_base
   CREATE PUBLIC .
@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_spt_apps_tranlate IMPLEMENTATION.
+CLASS zcl_spt_apps_translate IMPLEMENTATION.
   METHOD zif_spt_core_app~get_app_type.
   CLEAR: es_app.
 
