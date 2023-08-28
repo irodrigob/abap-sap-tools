@@ -101,6 +101,11 @@ CLASS zcl_spt_translate_tool DEFINITION
       IMPORTING iv_order  TYPE trkorr
       EXPORTING ev_task   TYPE trkorr
                 es_return TYPE bapiret2.
+    CLASS-METHODS get_name_field_ctrl
+      IMPORTING
+        i_language         TYPE lxeisolang
+      RETURNING
+        VALUE(r_fieldname) TYPE fieldname .
     "! <p class="shorttext synchronized">Campo del tipo de propuesta de texto</p>
     "! @parameter iv_language | <p class="shorttext synchronized">Idioma</p>
     "! @parameter rv_fieldname | <p class="shorttext synchronized">Campo</p>
@@ -161,11 +166,7 @@ CLASS zcl_spt_translate_tool DEFINITION
       EXPORTING
         VALUE(e_components) TYPE tt_main_fields .
     METHODS create_it_fcat .
-    METHODS get_name_field_ctrl
-      IMPORTING
-        !i_language        TYPE lxeisolang
-      RETURNING
-        VALUE(r_fieldname) TYPE fieldname .
+
 
 
     METHODS get_ref_text_object
@@ -554,7 +555,7 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
 * Se no se pasa una clase de mensaje se pone la generica de la aplicación.
     IF i_id IS NOT SUPPLIED.
-      r_return-id = 'ZSPT_TRANS_ORDER'.
+      r_return-id = 'ZSPT_TRANSLATE_TOOL'.
     ELSE.
       r_return-id = i_id.
     ENDIF.
@@ -940,7 +941,7 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
 * Cualquier error se almacena en a estructura de salida y se sale.
       IF sy-subrc NE 0.
-        rs_return = fill_return( i_type = 'S'
+        rs_return = fill_return( i_type = 'E'
                                 i_number = '006'
                                 i_message_v1 = <ls_mngt_text>-object
                                 i_message_v2 = <ls_mngt_text>-obj_name ).

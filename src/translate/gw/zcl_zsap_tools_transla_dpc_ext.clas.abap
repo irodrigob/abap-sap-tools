@@ -199,6 +199,7 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
 
   METHOD get_objecttext.
 
+    CLEAR: cs_data-objecttextset.
 
     adapt_objects_text_2_service( EXPORTING it_languages = mo_translate->get_languages( )
                                   CHANGING cs_data = cs_data ).
@@ -211,6 +212,33 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
 
     adapt_objects_service_2_text( EXPORTING it_languages = mo_translate->get_languages( )
                                   CHANGING cs_data = cs_data ).
+
+    DATA(ls_return) = mo_translate->save_data( ).
+
+    INSERT VALUE #( type = ls_return-type
+                    message = ls_return-message ) INTO TABLE cs_data-returnset.
+
+    IF ls_return-type = 'S'.
+
+      IF cs_data-order IS NOT INITIAL.
+        mo_translate->transport_mod_obj(
+          IMPORTING
+            es_return = ls_return ).
+
+        INSERT VALUE #( type = ls_return-type
+                message = ls_return-message ) INTO TABLE cs_data-returnset.
+      ENDIF.
+
+" Cuando se graba se releen los datos para actualizar los estados de las propuestas de textos.
+" Por ello tengo que volcar de nuevo los datos a la tabla del servicio.
+      CLEAR cs_data-objecttextset.
+      adapt_objects_text_2_service(
+        EXPORTING
+          it_languages = mo_translate->get_languages( )
+        CHANGING
+          cs_data      = cs_data ).
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -313,6 +341,48 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
 
 
   METHOD adapt_objects_service_2_text.
+    FIELD-SYMBOLS <tbl> TYPE STANDARD TABLE.
+
+    DATA(lo_data) = mo_translate->get_data( ).
+    ASSIGN lo_data->* TO <tbl>.
+
+    LOOP AT cs_data-objecttextset ASSIGNING FIELD-SYMBOL(<ls_objecttext>).
+
+      READ TABLE <tbl> ASSIGNING FIELD-SYMBOL(<wa>) WITH KEY ('OBJECT') = <ls_objecttext>-object
+                                                             ('OBJ_NAME') = <ls_objecttext>-obj_name
+                                                             ('OBJTYPE') = <ls_objecttext>-objtype
+                                                             ('ID_TEXT') = <ls_objecttext>-id_text.
+      IF sy-subrc = 0.
+        DATA(lv_count) = 1.
+        DO.
+          ASSIGN COMPONENT |LANG_TLANG{ lv_count }| OF STRUCTURE <ls_objecttext> TO FIELD-SYMBOL(<lang_tlang_serv>).
+          IF sy-subrc = 0.
+            IF <lang_tlang_serv> IS INITIAL.
+              EXIT.
+            ELSE.
+              ASSIGN COMPONENT mo_translate->get_name_field_text( CONV #( <lang_tlang_serv> ) ) OF STRUCTURE <wa> TO FIELD-SYMBOL(<field_text>).
+              IF sy-subrc = 0.
+                ASSIGN COMPONENT |TXT_TLANG{ lv_count }| OF STRUCTURE <ls_objecttext> TO FIELD-SYMBOL(<text_tlang_serv>).
+                IF <text_tlang_serv> NE <field_text>.
+                  <field_text> = <text_tlang_serv>.
+
+                  ASSIGN COMPONENT mo_translate->get_name_field_ctrl( CONV #( <lang_tlang_serv> ) ) OF STRUCTURE <wa> TO FIELD-SYMBOL(<field_ctrl>).
+                  IF sy-subrc = 0.
+                    <field_ctrl> = abap_true.
+                  ENDIF.
+                ENDIF.
+              ENDIF.
+            ENDIF.
+          ELSE.
+            EXIT.
+          ENDIF.
+
+          lv_count = lv_count + 1.
+        ENDDO.
+      ENDIF.
+    ENDLOOP.
+
+    mo_translate->set_data( lo_data ).
 
   ENDMETHOD.
 

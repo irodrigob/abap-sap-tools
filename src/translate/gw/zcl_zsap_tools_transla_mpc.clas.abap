@@ -202,6 +202,18 @@ lo_assoc_set = model->create_association_set( iv_association_set_name  = 'object
                                               iv_right_entity_set_name = 'objectTextSet'             "#EC NOTEXT
                                               iv_association_name      = 'objectTranslate_objectText' ).                                 "#EC NOTEXT
 
+ lo_association = model->create_association(
+                            iv_association_name = 'objectTranslate_return' "#EC NOTEXT
+                            iv_left_type        = 'objectTranslate' "#EC NOTEXT
+                            iv_right_type       = 'return' "#EC NOTEXT
+                            iv_right_card       = 'M' "#EC NOTEXT
+                            iv_left_card        = '1'  "#EC NOTEXT
+                            iv_def_assoc_set    = abap_false ). "#EC NOTEXT
+lo_assoc_set = model->create_association_set( iv_association_set_name  = 'objectTranslate_returnSet'                         "#EC NOTEXT
+                                              iv_left_entity_set_name  = 'objectTranslateSet'              "#EC NOTEXT
+                                              iv_right_entity_set_name = 'returnSet'             "#EC NOTEXT
+                                              iv_association_name      = 'objectTranslate_return' ).                                 "#EC NOTEXT
+
 
 ***********************************************************************************************************************************
 *   NAVIGATION PROPERTIES
@@ -212,11 +224,19 @@ lo_entity_type = model->get_entity_type( iv_entity_name = 'objectTranslate' ). "
 lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'objectTextSet' "#EC NOTEXT
                                                               iv_abap_fieldname = 'OBJECTTEXTSET' "#EC NOTEXT
                                                               iv_association_name = 'objectTranslate_objectText' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'returnSet' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'RETURNSET' "#EC NOTEXT
+                                                              iv_association_name = 'objectTranslate_return' ). "#EC NOTEXT
 * Navigation Properties for entity - objectText
 lo_entity_type = model->get_entity_type( iv_entity_name = 'objectText' ). "#EC NOTEXT
 lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'objectTranslate' "#EC NOTEXT
                                                               iv_abap_fieldname = 'OBJECTTRANSLATE' "#EC NOTEXT
                                                               iv_association_name = 'objectTranslate_objectText' ). "#EC NOTEXT
+* Navigation Properties for entity - return
+lo_entity_type = model->get_entity_type( iv_entity_name = 'return' ). "#EC NOTEXT
+lo_nav_property = lo_entity_type->create_navigation_property( iv_property_name  = 'objectTranslate' "#EC NOTEXT
+                                                              iv_abap_fieldname = 'OBJECTTRANSLATE' "#EC NOTEXT
+                                                              iv_association_name = 'objectTranslate_return' ). "#EC NOTEXT
   endmethod.
 
 
@@ -1191,7 +1211,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230827113143'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230828140939'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.
