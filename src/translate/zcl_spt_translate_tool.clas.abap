@@ -954,7 +954,9 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 * éxito de la operación.
     IF rs_return IS INITIAL.
       rs_return = fill_return( i_type = 'S'
-                              i_number = '007' ).
+                              i_number = '007'
+                              i_message_v1 = mv_object
+                                i_message_v2 = mv_obj_name ).
 
 * Se vuelven a leer los textos por dos motivos:
 * 1) En la SE63, Un campo nuevo en la pantalla de seleccion de un programa que
