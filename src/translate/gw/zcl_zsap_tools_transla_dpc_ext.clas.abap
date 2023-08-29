@@ -11,7 +11,7 @@ CLASS zcl_zsap_tools_transla_dpc_ext DEFINITION
 
   PRIVATE SECTION.
     DATA mo_translate TYPE REF TO zcl_spt_translate_tool.
-    METHODS objecttext_entity
+    METHODS objecttranslate_entity
       IMPORTING
         iv_entity_name          TYPE string
         iv_entity_set_name      TYPE string
@@ -85,7 +85,7 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
   METHOD /iwbep/if_mgw_appl_srv_runtime~create_deep_entity.
     CASE iv_entity_name.
       WHEN 'objectTranslate'.
-        objecttext_entity(
+        objecttranslate_entity(
           EXPORTING
             iv_entity_name               = iv_entity_name
             iv_entity_set_name           = iv_entity_set_name
@@ -102,7 +102,7 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD objecttext_entity.
+  METHOD objecttranslate_entity.
 
     DATA ls_data TYPE zcl_zsap_tools_transla_mpc_ext=>ts_objecttranlsate_deep.
 
