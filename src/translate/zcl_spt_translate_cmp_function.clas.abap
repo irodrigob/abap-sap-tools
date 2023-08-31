@@ -61,9 +61,9 @@ CLASS zcl_spt_translate_cmp_function IMPLEMENTATION.
 
 
   METHOD get_components.
-    FIELD-SYMBOLS <ls_refs> TYPE LINE OF zif_ref_data=>tt_list_refs.
-    DATA lt_refs TYPE zif_ref_data=>tt_list_refs.
-    DATA lo_refs TYPE REF TO zcl_ref_object.
+    FIELD-SYMBOLS <ls_refs> TYPE LINE OF zif_spt_ref_data=>tt_list_refs.
+    DATA lt_refs TYPE zif_spt_ref_data=>tt_list_refs.
+    DATA lo_refs TYPE REF TO zcl_spt_ref_object.
     DATA ls_components TYPE LINE OF tt_components.
 
     CLEAR et_components.
@@ -93,7 +93,7 @@ CLASS zcl_spt_translate_cmp_function IMPLEMENTATION.
       ENDIF.
 
 * Obtengo el nombre del grupo de funciones en caso de ser una función.
-      CALL METHOD zcl_ref_source=>get_internal_name
+      CALL METHOD zcl_spt_ref_source=>get_internal_name
         EXPORTING
           iv_object             = mv_obj_name
           iv_type               = mv_object

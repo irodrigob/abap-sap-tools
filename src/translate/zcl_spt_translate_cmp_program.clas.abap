@@ -32,9 +32,9 @@ CLASS zcl_spt_translate_cmp_program IMPLEMENTATION.
 
 
   METHOD get_components.
-    FIELD-SYMBOLS <ls_refs> TYPE LINE OF zif_ref_data=>tt_list_refs.
-    DATA lt_refs TYPE zif_ref_data=>tt_list_refs.
-    DATA lo_refs TYPE REF TO zcl_ref_object.
+    FIELD-SYMBOLS <ls_refs> TYPE LINE OF zif_spt_ref_data=>tt_list_refs.
+    DATA lt_refs TYPE zif_spt_ref_data=>tt_list_refs.
+    DATA lo_refs TYPE REF TO zcl_spt_ref_object.
     DATA ls_components TYPE LINE OF tt_components.
 
     CLEAR et_components.
@@ -59,7 +59,7 @@ CLASS zcl_spt_translate_cmp_program IMPLEMENTATION.
       ls_components-object = mv_object.
 
 * Obtengo el nombre interno, necesario para encontrar las traduccion en clases.
-      CALL METHOD zcl_ref_source=>get_internal_name
+      CALL METHOD zcl_spt_ref_source=>get_internal_name
         EXPORTING
           iv_object             = mv_obj_name
           iv_type               = mv_object
@@ -78,7 +78,7 @@ CLASS zcl_spt_translate_cmp_program IMPLEMENTATION.
                            AND fullname_ref CS '\IC:'.
 
 * Las clases de mensajes también se eliminan, ya que se capturan los mensajes de manera inidividual.
-      DELETE lt_refs WHERE type_ref = zif_ref_data=>cs_types-messclas.
+      DELETE lt_refs WHERE type_ref = zif_spt_ref_data=>cs_types-messclas.
 
 * Los status de pantalla/títulos no se leen en las referencias pero se han de tener en cuenta para
 * las traducciones.

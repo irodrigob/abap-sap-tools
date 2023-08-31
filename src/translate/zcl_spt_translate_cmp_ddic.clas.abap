@@ -26,9 +26,9 @@ CLASS zcl_spt_translate_cmp_ddic IMPLEMENTATION.
 
 
   METHOD get_components.
-    FIELD-SYMBOLS <ls_refs> TYPE LINE OF zif_ref_data=>tt_list_refs.
-    DATA lt_refs TYPE zif_ref_data=>tt_list_refs.
-    DATA lo_refs TYPE REF TO zcl_ref_object.
+    FIELD-SYMBOLS <ls_refs> TYPE LINE OF zif_spt_ref_data=>tt_list_refs.
+    DATA lt_refs TYPE zif_spt_ref_data=>tt_list_refs.
+    DATA lo_refs TYPE REF TO zcl_spt_ref_object.
     DATA ls_components TYPE LINE OF tt_components.
 
     CLEAR et_components.
@@ -79,19 +79,19 @@ CLASS zcl_spt_translate_cmp_ddic IMPLEMENTATION.
 
   METHOD get_objects_type.
 * Tablas
-    APPEND zif_ref_data=>cs_types-table TO rt_objects.
+    APPEND zif_spt_ref_data=>cs_types-table TO rt_objects.
 * Estructuras
-    APPEND zif_ref_data=>cs_types-struc TO rt_objects.
+    APPEND zif_spt_ref_data=>cs_types-struc TO rt_objects.
 * Elemento de datos
-    APPEND zif_ref_data=>cs_types-dataelem TO rt_objects.
+    APPEND zif_spt_ref_data=>cs_types-dataelem TO rt_objects.
 * Dominio
-    APPEND zif_ref_data=>cs_types-domain TO rt_objects.
+    APPEND zif_spt_ref_data=>cs_types-domain TO rt_objects.
 * Tipo tabla
-    APPEND zif_ref_data=>cs_types-tabltype TO rt_objects.
+    APPEND zif_spt_ref_data=>cs_types-tabltype TO rt_objects.
 * Ayuda para búsqued
-    APPEND zif_ref_data=>cs_types-seahlp TO rt_objects.
+    APPEND zif_spt_ref_data=>cs_types-seahlp TO rt_objects.
 * Vistas
-    APPEND zif_ref_data=>cs_types-view TO rt_objects.
+    APPEND zif_spt_ref_data=>cs_types-view TO rt_objects.
 
 
   ENDMETHOD.
