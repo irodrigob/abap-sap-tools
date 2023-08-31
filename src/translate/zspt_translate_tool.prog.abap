@@ -8,8 +8,8 @@
 
 REPORT  zspt_translate_tool MESSAGE-ID zspt_translate_tool.
 
-INCLUDE ZSPT_TRANSLATE_TOOL_TOP.
-INCLUDE ZSPT_TRANSLATE_TOOL_C01.
+INCLUDE zspt_translate_tool_top.
+INCLUDE zspt_translate_tool_c01.
 
 
 *----------------------------------------------------------------------*
@@ -89,6 +89,6 @@ END-OF-SELECTION.
     MESSAGE s005.
   ENDIF.
 
-INCLUDE ZSPT_TRANSLATE_TOOL_F01.
-INCLUDE ZSPT_TRANSLATE_TOOL_O01.
-INCLUDE ZSPT_TRANSLATE_TOOL_I01.
+  INCLUDE zspt_translate_tool_f01.
+  INCLUDE zspt_translate_tool_o01.
+  INCLUDE zspt_translate_tool_i01.
