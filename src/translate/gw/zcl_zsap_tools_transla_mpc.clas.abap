@@ -1140,7 +1140,7 @@ lo_entity_type = model->create_entity_type( iv_entity_type_name = 'selectableObj
 *Properties
 ***********************************************************************************************************************************
 
-lo_property = lo_entity_type->create_property( iv_property_name = 'Pgmid' iv_abap_fieldname = 'PGMID' ). "#EC NOTEXT
+lo_property = lo_entity_type->create_property( iv_property_name = 'pgmid' iv_abap_fieldname = 'PGMID' ). "#EC NOTEXT
 lo_property->set_is_key( ).
 lo_property->set_type_edm_string( ).
 lo_property->set_maxlength( iv_max_length = 4 ). "#EC NOTEXT
@@ -1153,7 +1153,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
-lo_property = lo_entity_type->create_property( iv_property_name = 'Object' iv_abap_fieldname = 'OBJECT' ). "#EC NOTEXT
+lo_property = lo_entity_type->create_property( iv_property_name = 'object' iv_abap_fieldname = 'OBJECT' ). "#EC NOTEXT
 lo_property->set_is_key( ).
 lo_property->set_type_edm_string( ).
 lo_property->set_maxlength( iv_max_length = 4 ). "#EC NOTEXT
@@ -1166,7 +1166,7 @@ lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
       EXPORTING
         iv_key      = 'unicode'
         iv_value    = 'false' ).
-lo_property = lo_entity_type->create_property( iv_property_name = 'Text' iv_abap_fieldname = 'TEXT' ). "#EC NOTEXT
+lo_property = lo_entity_type->create_property( iv_property_name = 'text' iv_abap_fieldname = 'TEXT' ). "#EC NOTEXT
 lo_property->set_is_key( ).
 lo_property->set_type_edm_string( ).
 lo_property->set_maxlength( iv_max_length = 60 ). "#EC NOTEXT
@@ -1211,7 +1211,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230828140939'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230902153232'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.
