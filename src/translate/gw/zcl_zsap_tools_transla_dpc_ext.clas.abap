@@ -8,6 +8,8 @@ CLASS zcl_zsap_tools_transla_dpc_ext DEFINITION
   PROTECTED SECTION.
     METHODS languagesset_get_entityset REDEFINITION.
     METHODS selectableobject_get_entityset REDEFINITION.
+    METHODS checkobjectset_get_entity REDEFINITION.
+    METHODS checkorderset_get_entity REDEFINITION.
 
   PRIVATE SECTION.
     DATA mo_translate TYPE REF TO zcl_spt_translate_tool.
@@ -229,8 +231,8 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
                 message = ls_return-message ) INTO TABLE cs_data-returnset.
       ENDIF.
 
-" Cuando se graba se releen los datos para actualizar los estados de las propuestas de textos.
-" Por ello tengo que volcar de nuevo los datos a la tabla del servicio.
+      " Cuando se graba se releen los datos para actualizar los estados de las propuestas de textos.
+      " Por ello tengo que volcar de nuevo los datos a la tabla del servicio.
       CLEAR cs_data-objecttextset.
       adapt_objects_text_2_service(
         EXPORTING
@@ -383,6 +385,59 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
     ENDLOOP.
 
     mo_translate->set_data( lo_data ).
+
+  ENDMETHOD.
+
+  METHOD checkobjectset_get_entity.
+
+    DATA(message_container) = /iwbep/if_mgw_conv_srv_runtime~get_message_container( ).
+
+    mo_translate = NEW #(  ).
+    DATA(lv_object) = CONV trobjtype( it_key_tab[ name = 'object' ]-value ).
+    DATA(lv_obj_name) = CONV sobj_name( it_key_tab[ name = 'objectName' ]-value ).
+
+    IF mo_translate->check_obj_2_trans( EXPORTING iv_object  = lv_object
+                                                      iv_obj_name = lv_obj_name ).
+      er_entity-object = lv_object.
+      er_entity-obj_name = lv_obj_name.
+    ELSE.
+      message_container->add_messages_from_bapi(
+        EXPORTING
+          it_bapi_messages          =  VALUE #( ( mo_translate->fill_return( i_number = '004'
+                                                                             i_type = 'E'
+                                                                             i_message_v1 = lv_object
+                                                                             i_message_v2 = lv_obj_name ) ) ) ).
+
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          message_container = message_container.
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD checkorderset_get_entity.
+
+    DATA(message_container) = /iwbep/if_mgw_conv_srv_runtime~get_message_container( ).
+
+    mo_translate = NEW #(  ).
+
+
+    DATA(ls_return) = mo_translate->check_order( iv_order = CONV #( it_key_tab[ name = 'order' ]-value ) ).
+
+    IF ls_return IS INITIAL .
+      er_entity-order = it_key_tab[ name = 'order' ]-value.
+    ELSE.
+
+      message_container->add_messages_from_bapi(
+        EXPORTING
+          it_bapi_messages          =  VALUE #( ( ls_return ) ) ).
+
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          message_container = message_container.
+
+    ENDIF.
 
   ENDMETHOD.
 
