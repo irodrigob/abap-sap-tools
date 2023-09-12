@@ -191,7 +191,7 @@ ENDCLASS.
 
 
 
-CLASS zcl_spt_translate_tool IMPLEMENTATION.
+CLASS ZCL_SPT_TRANSLATE_TOOL IMPLEMENTATION.
 
 
   METHOD change_text_fcat.
@@ -217,6 +217,36 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
                                                                  iv_obj_name = iv_obj_name ).
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD check_order.
+    DATA ls_request TYPE trwbo_request_header.
+
+    CLEAR: rs_return.
+
+    ls_request = VALUE #( trkorr = iv_order ).
+
+
+    CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
+      EXPORTING
+        iv_read_e070   = abap_true
+      CHANGING
+        cs_request     = ls_request
+      EXCEPTIONS
+        empty_trkorr   = 1
+        not_exist_e070 = 2
+        OTHERS         = 99.
+    IF sy-subrc NE 0.
+      rs_return = fill_return( i_type       = 'E'
+                               i_number     = sy-msgno
+                               i_message_v1 = sy-msgv1
+                               i_message_v2 = sy-msgv2
+                               i_message_v3 = sy-msgv3
+                               i_message_v4 = sy-msgv4
+                               i_id         = sy-msgid ).
+
+    ENDIF.
   ENDMETHOD.
 
 
@@ -635,22 +665,20 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD read_languages.
-
-    SELECT r3_lang language AS lxe_language text_lang langshort AS language INTO CORRESPONDING FIELDS OF TABLE mt_languages
-           FROM lxe_t002x
-           WHERE is_r3_lang = abap_true
-                AND r3_lang NE ''.
-
-    LOOP AT mt_languages ASSIGNING FIELD-SYMBOL(<ls_languages>).
-      <ls_languages>-lxe_language_sort = |{ <ls_languages>-lxe_language CASE = UPPER }|.
-    ENDLOOP.
+  METHOD get_languages.
+    rt_languages = mt_languages.
   ENDMETHOD.
 
 
   METHOD get_name_field_ctrl.
     CONCATENATE cs_fields_itab-ctrl_lang i_language INTO r_fieldname.
     TRANSLATE r_fieldname TO UPPER CASE.
+  ENDMETHOD.
+
+
+  METHOD get_name_field_ppsal_type.
+    rv_fieldname = |{ cs_fields_itab-ppsal_type }_{ iv_language }|.
+    rv_fieldname = |{ rv_fieldname CASE = UPPER }|.
   ENDMETHOD.
 
 
@@ -715,6 +743,84 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
     IF <ls_mngt_text> IS ASSIGNED.
 
     ENDIF.
+  ENDMETHOD.
+
+
+  METHOD get_task_from_order.
+    DATA lt_req_head TYPE trwbo_request_headers.
+    DATA lt_req TYPE trwbo_requests.
+
+    DATA(lv_order) = iv_order.
+
+    CLEAR: es_return, ev_task.
+
+    CALL FUNCTION 'TR_READ_REQUEST_WITH_TASKS'
+      EXPORTING
+        iv_trkorr          = lv_order
+      IMPORTING
+        et_request_headers = lt_req_head
+        et_requests        = lt_req
+      EXCEPTIONS
+        invalid_input      = 1
+        OTHERS             = 2.
+    IF sy-subrc = 0.
+      " Se mira si hay alguna tarea valida para el usuario.
+      LOOP AT lt_req_head ASSIGNING FIELD-SYMBOL(<ls_req_head>) WHERE trfunction = zcl_spt_trans_order_data=>cs_orders-type-development
+                                                        AND trstatus = zcl_spt_trans_order_data=>cs_orders-status-changeable
+                                                        AND as4user = sy-uname.
+        EXIT.
+      ENDLOOP.
+      IF sy-subrc = 0.
+        ev_task = <ls_req_head>-trkorr.
+      ELSE.
+        " Se busca la orden. Si la orden no tiene tareas entonces el primer registro que será el de la orden.
+        LOOP AT lt_req_head ASSIGNING <ls_req_head> WHERE strkorr IS NOT INITIAL.
+          EXIT.
+        ENDLOOP.
+        IF sy-subrc NE 0.
+          ASSIGN lt_req_head[ 1 ] TO <ls_req_head>.
+          <ls_req_head>-strkorr = lv_order.
+        ENDIF.
+
+        CALL FUNCTION 'TRINT_INSERT_NEW_COMM'
+          EXPORTING
+            wi_kurztext       = <ls_req_head>-as4text
+            wi_trfunction     = zcl_spt_trans_order_data=>cs_orders-type-development
+            iv_username       = sy-uname
+            wi_strkorr        = <ls_req_head>-strkorr
+            wi_client         = sy-mandt
+          IMPORTING
+            we_trkorr         = ev_task
+          EXCEPTIONS
+            no_systemname     = 1
+            no_systemtype     = 2
+            no_authorization  = 3
+            db_access_error   = 4
+            file_access_error = 5
+            enqueue_error     = 6
+            number_range_full = 7
+            invalid_input     = 8
+            OTHERS            = 9.
+        IF sy-subrc NE 0.
+          es_return = fill_return( i_type       = 'E'
+                                i_number     = sy-msgno
+                                i_message_v1 = sy-msgv1
+                                i_message_v2 = sy-msgv2
+                                i_message_v3 = sy-msgv3
+                                i_message_v4 = sy-msgv4
+                                i_id         = sy-msgid ).
+        ENDIF.
+      ENDIF.
+    ELSE.
+      es_return = fill_return( i_type       = 'E'
+                                    i_number     = sy-msgno
+                                    i_message_v1 = sy-msgv1
+                                    i_message_v2 = sy-msgv2
+                                    i_message_v3 = sy-msgv3
+                                    i_message_v4 = sy-msgv4
+                                    i_id         = sy-msgid ).
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -798,6 +904,19 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD read_languages.
+
+    SELECT r3_lang language AS lxe_language text_lang langshort AS language INTO CORRESPONDING FIELDS OF TABLE mt_languages
+           FROM lxe_t002x
+           WHERE is_r3_lang = abap_true
+                AND r3_lang NE ''.
+
+    LOOP AT mt_languages ASSIGNING FIELD-SYMBOL(<ls_languages>).
+      <ls_languages>-lxe_language_sort = |{ <ls_languages>-lxe_language CASE = UPPER }|.
+    ENDLOOP.
   ENDMETHOD.
 
 
@@ -894,6 +1013,9 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
                       io_object_text = lo_text_object
                     CHANGING
                       cs_wa          = <wa>.
+                ELSE.
+                  ASSIGN COMPONENT get_name_field_ppsal_type( <ls_tlang> ) OF STRUCTURE <wa> TO FIELD-SYMBOL(<ppsal_type>).
+                  <ppsal_type> = cs_text_ppsal_type-without_text.
                 ENDIF.
 
 * Si el objeto e id de texto no esta en la tabla temporal, muevo los campos principales
@@ -1119,119 +1241,4 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-  METHOD get_languages.
-    rt_languages = mt_languages.
-  ENDMETHOD.
-
-  METHOD check_order.
-    DATA ls_request TYPE trwbo_request_header.
-
-    CLEAR: rs_return.
-
-    ls_request = VALUE #( trkorr = iv_order ).
-
-
-    CALL FUNCTION 'TRINT_READ_REQUEST_HEADER'
-      EXPORTING
-        iv_read_e070   = abap_true
-      CHANGING
-        cs_request     = ls_request
-      EXCEPTIONS
-        empty_trkorr   = 1
-        not_exist_e070 = 2
-        OTHERS         = 99.
-    IF sy-subrc NE 0.
-      rs_return = fill_return( i_type       = 'E'
-                               i_number     = sy-msgno
-                               i_message_v1 = sy-msgv1
-                               i_message_v2 = sy-msgv2
-                               i_message_v3 = sy-msgv3
-                               i_message_v4 = sy-msgv4
-                               i_id         = sy-msgid ).
-
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD get_task_from_order.
-    DATA lt_req_head TYPE trwbo_request_headers.
-    DATA lt_req TYPE trwbo_requests.
-
-    DATA(lv_order) = iv_order.
-
-    CLEAR: es_return, ev_task.
-
-    CALL FUNCTION 'TR_READ_REQUEST_WITH_TASKS'
-      EXPORTING
-        iv_trkorr          = lv_order
-      IMPORTING
-        et_request_headers = lt_req_head
-        et_requests        = lt_req
-      EXCEPTIONS
-        invalid_input      = 1
-        OTHERS             = 2.
-    IF sy-subrc = 0.
-      " Se mira si hay alguna tarea valida para el usuario.
-      LOOP AT lt_req_head ASSIGNING FIELD-SYMBOL(<ls_req_head>) WHERE trfunction = zcl_spt_trans_order_data=>cs_orders-type-development
-                                                        AND trstatus = zcl_spt_trans_order_data=>cs_orders-status-changeable
-                                                        AND as4user = sy-uname.
-        EXIT.
-      ENDLOOP.
-      IF sy-subrc = 0.
-        ev_task = <ls_req_head>-trkorr.
-      ELSE.
-        " Se busca la orden. Si la orden no tiene tareas entonces el primer registro que será el de la orden.
-        LOOP AT lt_req_head ASSIGNING <ls_req_head> WHERE strkorr IS NOT INITIAL.
-          EXIT.
-        ENDLOOP.
-        IF sy-subrc NE 0.
-          ASSIGN lt_req_head[ 1 ] TO <ls_req_head>.
-          <ls_req_head>-strkorr = lv_order.
-        ENDIF.
-
-        CALL FUNCTION 'TRINT_INSERT_NEW_COMM'
-          EXPORTING
-            wi_kurztext       = <ls_req_head>-as4text
-            wi_trfunction     = zcl_spt_trans_order_data=>cs_orders-type-development
-            iv_username       = sy-uname
-            wi_strkorr        = <ls_req_head>-strkorr
-            wi_client         = sy-mandt
-          IMPORTING
-            we_trkorr         = ev_task
-          EXCEPTIONS
-            no_systemname     = 1
-            no_systemtype     = 2
-            no_authorization  = 3
-            db_access_error   = 4
-            file_access_error = 5
-            enqueue_error     = 6
-            number_range_full = 7
-            invalid_input     = 8
-            OTHERS            = 9.
-        IF sy-subrc NE 0.
-          es_return = fill_return( i_type       = 'E'
-                                i_number     = sy-msgno
-                                i_message_v1 = sy-msgv1
-                                i_message_v2 = sy-msgv2
-                                i_message_v3 = sy-msgv3
-                                i_message_v4 = sy-msgv4
-                                i_id         = sy-msgid ).
-        ENDIF.
-      ENDIF.
-    ELSE.
-      es_return = fill_return( i_type       = 'E'
-                                    i_number     = sy-msgno
-                                    i_message_v1 = sy-msgv1
-                                    i_message_v2 = sy-msgv2
-                                    i_message_v3 = sy-msgv3
-                                    i_message_v4 = sy-msgv4
-                                    i_id         = sy-msgid ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD get_name_field_ppsal_type.
-    rv_fieldname = |{ cs_fields_itab-ppsal_type }_{ iv_language }|.
-    rv_fieldname = |{ rv_fieldname CASE = UPPER }|.
-  ENDMETHOD.
-
 ENDCLASS.
