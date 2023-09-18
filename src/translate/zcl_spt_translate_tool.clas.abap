@@ -13,6 +13,11 @@ CLASS zcl_spt_translate_tool DEFINITION
              lxe_language_sort TYPE lxe_t002x-language,
            END OF ts_languages.
     TYPES: tt_languages TYPE STANDARD TABLE OF ts_languages WITH EMPTY KEY.
+    TYPES: BEGIN OF ts_object_transport,
+             object   TYPE trobjtype,
+             obj_name TYPE sobj_name,
+           END OF ts_object_transport.
+    TYPES tt_object_transport TYPE STANDARD TABLE OF ts_object_transport WITH EMPTY KEY.
     DATA mv_object TYPE trobjtype READ-ONLY .
     DATA mv_obj_name TYPE sobj_name READ-ONLY .
     CONSTANTS: BEGIN OF cs_fields_itab,
@@ -33,7 +38,7 @@ CLASS zcl_spt_translate_tool DEFINITION
     CONSTANTS mc_style_text_changed TYPE raw4 VALUE '0000000A'.
     CLASS-METHODS fill_return
       IMPORTING
-        i_type          TYPE any
+        i_type          TYPE any DEFAULT zcl_spt_core_data=>cs_message-type_error
         i_number        TYPE any
         i_message_v1    TYPE any OPTIONAL
         i_message_v2    TYPE any OPTIONAL
@@ -101,6 +106,12 @@ CLASS zcl_spt_translate_tool DEFINITION
       IMPORTING iv_order  TYPE trkorr
       EXPORTING ev_task   TYPE trkorr
                 es_return TYPE bapiret2.
+    "! <p class="shorttext synchronized">Añade objectos a una tarea</p>
+    "! @parameter it_objects | <p class="shorttext synchronized">Objectos</p>
+    "! @parameter et_return | <p class="shorttext synchronized">Resultado del proceso</p>
+    METHODS add_objects_transp_req
+      IMPORTING it_objects TYPE tt_object_transport
+      EXPORTING et_return  TYPE zcl_spt_core_data=>tt_return.
     CLASS-METHODS get_name_field_ctrl
       IMPORTING
         i_language         TYPE lxeisolang
@@ -191,7 +202,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_SPT_TRANSLATE_TOOL IMPLEMENTATION.
+CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
 
   METHOD change_text_fcat.
@@ -733,16 +744,6 @@ CLASS ZCL_SPT_TRANSLATE_TOOL IMPLEMENTATION.
       e_object = <ls_mngt_text>-oobject.
     ENDIF.
 
-* Si el puntero esta asignado devuelvo el objeto de textos al parámetro de salida.
-* Esto que permite:
-* 1) Los datos del objeto se actualizarán solo debido a que devuelvo
-* una referencia a memoria que apunta al registro de la tabla donde esta que también
-* es un puntero.
-* 2) Simplifica el codigo que llama a dicho método. Ya que no hay porque preocuparse
-* de actualizar el registro en it_mngt_text
-    IF <ls_mngt_text> IS ASSIGNED.
-
-    ENDIF.
   ENDMETHOD.
 
 
@@ -1241,4 +1242,65 @@ CLASS ZCL_SPT_TRANSLATE_TOOL IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+  METHOD add_objects_transp_req.
+
+    CLEAR: et_return.
+
+    DATA(lv_added_objects) = abap_false.
+    LOOP AT mt_tlang ASSIGNING FIELD-SYMBOL(<ls_tlang>).
+      ASSIGN mt_languages[ lxe_language = <ls_tlang> ] TO FIELD-SYMBOL(<ls_language>).
+      IF sy-subrc = 0.
+        LOOP AT it_objects ASSIGNING FIELD-SYMBOL(<ls_object>).
+
+
+          get_ref_text_object(
+            EXPORTING
+              i_object   = <ls_object>-object
+              i_obj_name = <ls_object>-obj_name
+              i_tlang    = <ls_tlang>
+            IMPORTING
+              e_object   = DATA(lo_object)  ).
+          IF lo_object IS BOUND.
+            lo_object->transport_translate(
+              EXPORTING
+                iv_trkorr           = mv_trkorr
+              EXCEPTIONS
+                error_insert_trkorr = 1
+                OTHERS              = 2 ).
+            IF sy-subrc = 0.
+              lv_added_objects = abap_true.
+            ELSE.
+              INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                              message =  fill_return( i_number = sy-msgno
+                                                      i_id = sy-msgid
+                                                      i_message_v1 = sy-msgv1
+                                                      i_message_v2 = sy-msgv2
+                                                      i_message_v3 = sy-msgv3
+                                                      i_message_v4 = sy-msgv4 )-message ) INTO TABLE et_return.
+            ENDIF.
+          ELSE.
+            INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                            message =  fill_return( i_number = '009' )-message ) INTO TABLE et_return.
+          ENDIF.
+        ENDLOOP.
+      ELSE.
+        INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_error
+                                   message =  fill_return( i_number = '014'
+                                                           i_message_v1 = <ls_tlang> )-message ) INTO TABLE et_return.
+      ENDIF.
+    ENDLOOP.
+
+    " Quito duplicados por si hay mensajes de errores iguales al transportar.
+    SORT et_return.
+    DELETE ADJACENT DUPLICATES FROM et_return COMPARING ALL FIELDS.
+
+    " Si al menos se añadido un objeto pongo un mensaje generico
+    IF lv_added_objects = abap_true.
+      INSERT VALUE #( type = zcl_spt_core_data=>cs_message-type_success
+                      message =  fill_return( i_number = '008'
+                                              i_message_v1 = mv_trkorr )-message ) INTO TABLE et_return.
+    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.

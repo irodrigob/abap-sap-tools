@@ -11,6 +11,7 @@ CLASS zcl_zsap_tools_transla_dpc_ext DEFINITION
     METHODS checkobjectset_get_entity REDEFINITION.
     METHODS checkorderset_get_entity REDEFINITION.
 
+
   PRIVATE SECTION.
     DATA mo_translate TYPE REF TO zcl_spt_translate_tool.
     METHODS objecttranslate_entity
@@ -56,6 +57,12 @@ CLASS zcl_zsap_tools_transla_dpc_ext DEFINITION
         it_languages TYPE zcl_spt_translate_tool=>tt_languages
       CHANGING
         cs_data      TYPE zcl_zsap_tools_transla_mpc_ext=>ts_objecttranlsate_deep.
+    METHODS transport_objects
+      CHANGING
+        cs_data TYPE zcl_zsap_tools_transla_mpc_ext=>ts_objecttranlsate_deep
+      RAISING
+        /iwbep/cx_mgw_busi_exception
+        /iwbep/cx_mgw_tech_exception.
 ENDCLASS.
 
 
@@ -112,13 +119,16 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
 
     io_data_provider->read_entry_data( IMPORTING es_data = ls_data ).
 
-    convert_and_check_objecttext( CHANGING cs_data = ls_data ).
 
     CASE ls_data-action.
       WHEN 'GET'.
+        convert_and_check_objecttext( CHANGING cs_data = ls_data ).
         get_objecttext( CHANGING cs_data = ls_data ).
       WHEN 'SAVE'.
+        convert_and_check_objecttext( CHANGING cs_data = ls_data ).
         save_objecttext( CHANGING cs_data = ls_data ).
+      WHEN 'TRANSPORT'.
+        transport_objects( CHANGING cs_data = ls_data ).
     ENDCASE.
 
     CALL METHOD me->/iwbep/if_mgw_conv_srv_runtime~copy_data_to_ref
@@ -439,6 +449,63 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
 
     ENDIF.
 
+  ENDMETHOD.
+
+
+  METHOD transport_objects.
+    DATA lt_tlang TYPE lxe_tt_lxeisolang.
+    DATA(message_container) = /iwbep/if_mgw_conv_srv_runtime~get_message_container( ).
+
+    DATA(lv_errors) = abap_false.
+    IF cs_data-order IS NOT INITIAL.
+
+      mo_translate->get_task_from_order(
+               EXPORTING
+                 iv_order  = cs_data-order
+               IMPORTING
+                 ev_task   = cs_data-order
+                 es_return = DATA(ls_return_order)
+             ).
+      IF ls_return_order IS NOT INITIAL.
+        lv_errors = abap_true.
+        message_container->add_messages_from_bapi(
+         EXPORTING
+           it_bapi_messages          =  VALUE #( ( ls_return_order ) ) ).
+      ENDIF.
+
+      DATA(lt_languages) = mo_translate->get_languages( ).
+      SPLIT cs_data-tlang AT '-' INTO TABLE DATA(lt_lang_serv).
+
+      LOOP AT lt_lang_serv ASSIGNING FIELD-SYMBOL(<ls_tlang_serv>).
+        ASSIGN lt_languages[ language = <ls_tlang_serv> ] TO FIELD-SYMBOL(<ls_language>).
+        IF sy-subrc = 0.
+          INSERT <ls_language>-lxe_language INTO TABLE lt_tlang.
+        ELSE.
+          lv_errors = abap_true.
+          message_container->add_messages_from_bapi(
+            EXPORTING
+              it_bapi_messages          =  VALUE #( ( mo_translate->fill_return( i_number = '003'
+                                                                                 i_id = 'LXE_TRANS'
+                                                                                 i_type = 'E'
+                                                                                 i_message_v1 = <ls_tlang_serv> ) ) ) ).
+        ENDIF.
+      ENDLOOP.
+
+    ELSE.
+      lv_errors = abap_true.
+      message_container->add_messages_from_bapi(
+           EXPORTING
+             it_bapi_messages = VALUE #( ( mo_translate->fill_return( i_number = '009'
+                                                                      i_type = 'E' ) ) ) ).
+
+
+    ENDIF.
+
+    IF lv_errors = abap_true.
+      RAISE EXCEPTION TYPE /iwbep/cx_mgw_busi_exception
+        EXPORTING
+          message_container = message_container.
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.

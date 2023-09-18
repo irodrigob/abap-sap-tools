@@ -113,6 +113,16 @@ public section.
   end of TS_CHECKORDER .
   types:
     TT_CHECKORDER type standard table of TS_CHECKORDER .
+  types:
+      begin of TS_TRANSPORTOBJECT,
+     OBJECT type TROBJTYPE,
+     OBJ_NAME type SOBJ_NAME,
+     ORDER type TRKORR,
+     TYPE type string,
+     MESSAGE type string,
+  end of TS_TRANSPORTOBJECT .
+  types:
+    TT_TRANSPORTOBJECT type standard table of TS_TRANSPORTOBJECT .
 
   constants GC_CHECKOBJECT type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'checkObject' ##NO_TEXT.
   constants GC_CHECKORDER type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'checkOrder' ##NO_TEXT.
@@ -121,6 +131,7 @@ public section.
   constants GC_OBJECTTRANSLATE type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'objectTranslate' ##NO_TEXT.
   constants GC_RETURN type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'return' ##NO_TEXT.
   constants GC_SELECTABLEOBJECTS type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'selectableObjects' ##NO_TEXT.
+  constants GC_TRANSPORTOBJECT type /IWBEP/IF_MGW_MED_ODATA_TYPES=>TY_E_MED_ENTITY_NAME value 'transportObject' ##NO_TEXT.
 
   methods LOAD_TEXT_ELEMENTS
   final
@@ -157,6 +168,9 @@ private section.
   methods DEFINE_CHECKORDER
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
+  methods DEFINE_TRANSPORTOBJECT
+    raising
+      /IWBEP/CX_MGW_MED_EXCEPTION .
   methods DEFINE_ASSOCIATIONS
     raising
       /IWBEP/CX_MGW_MED_EXCEPTION .
@@ -185,6 +199,7 @@ define_objecttext( ).
 define_return( ).
 define_checkobject( ).
 define_checkorder( ).
+define_transportobject( ).
 define_associations( ).
   endmethod.
 
@@ -1356,6 +1371,112 @@ lo_entity_set->set_filter_required( abap_false ).
   endmethod.
 
 
+  method DEFINE_TRANSPORTOBJECT.
+*&---------------------------------------------------------------------*
+*&           Generated code for the MODEL PROVIDER BASE CLASS         &*
+*&                                                                     &*
+*&  !!!NEVER MODIFY THIS CLASS. IN CASE YOU WANT TO CHANGE THE MODEL  &*
+*&        DO THIS IN THE MODEL PROVIDER SUBCLASS!!!                   &*
+*&                                                                     &*
+*&---------------------------------------------------------------------*
+
+
+  data:
+        lo_annotation     type ref to /iwbep/if_mgw_odata_annotation,                "#EC NEEDED
+        lo_entity_type    type ref to /iwbep/if_mgw_odata_entity_typ,                "#EC NEEDED
+        lo_complex_type   type ref to /iwbep/if_mgw_odata_cmplx_type,                "#EC NEEDED
+        lo_property       type ref to /iwbep/if_mgw_odata_property,                  "#EC NEEDED
+        lo_entity_set     type ref to /iwbep/if_mgw_odata_entity_set.                "#EC NEEDED
+
+***********************************************************************************************************************************
+*   ENTITY - transportObject
+***********************************************************************************************************************************
+
+lo_entity_type = model->create_entity_type( iv_entity_type_name = 'transportObject' iv_def_entity_set = abap_false ). "#EC NOTEXT
+
+***********************************************************************************************************************************
+*Properties
+***********************************************************************************************************************************
+
+lo_property = lo_entity_type->create_property( iv_property_name = 'object' iv_abap_fieldname = 'OBJECT' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'objName' iv_abap_fieldname = 'OBJ_NAME' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'order' iv_abap_fieldname = 'ORDER' ). "#EC NOTEXT
+lo_property->set_is_key( ).
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'type' iv_abap_fieldname = 'TYPE' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+lo_property = lo_entity_type->create_property( iv_property_name = 'message' iv_abap_fieldname = 'MESSAGE' ). "#EC NOTEXT
+lo_property->set_type_edm_string( ).
+lo_property->set_creatable( abap_false ).
+lo_property->set_updatable( abap_false ).
+lo_property->set_sortable( abap_false ).
+lo_property->set_nullable( abap_false ).
+lo_property->set_filterable( abap_false ).
+lo_property->/iwbep/if_mgw_odata_annotatabl~create_annotation( 'sap' )->add(
+      EXPORTING
+        iv_key      = 'unicode'
+        iv_value    = 'false' ).
+
+lo_entity_type->bind_structure( iv_structure_name  = 'ZCL_ZSAP_TOOLS_TRANSLA_MPC=>TS_TRANSPORTOBJECT' ). "#EC NOTEXT
+
+
+***********************************************************************************************************************************
+*   ENTITY SETS
+***********************************************************************************************************************************
+lo_entity_set = lo_entity_type->create_entity_set( 'transportObjectSet' ). "#EC NOTEXT
+
+lo_entity_set->set_creatable( abap_false ).
+lo_entity_set->set_updatable( abap_false ).
+lo_entity_set->set_deletable( abap_false ).
+
+lo_entity_set->set_pageable( abap_false ).
+lo_entity_set->set_addressable( abap_false ).
+lo_entity_set->set_has_ftxt_search( abap_false ).
+lo_entity_set->set_subscribable( abap_false ).
+lo_entity_set->set_filter_required( abap_false ).
+  endmethod.
+
+
   method GET_LAST_MODIFIED.
 *&---------------------------------------------------------------------*
 *&           Generated code for the MODEL PROVIDER BASE CLASS         &*
@@ -1366,7 +1487,7 @@ lo_entity_set->set_filter_required( abap_false ).
 *&---------------------------------------------------------------------*
 
 
-  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230905110244'.                  "#EC NOTEXT
+  CONSTANTS: lc_gen_date_time TYPE timestamp VALUE '20230918194959'.                  "#EC NOTEXT
   rv_last_modified = super->get_last_modified( ).
   IF rv_last_modified LT lc_gen_date_time.
     rv_last_modified = lc_gen_date_time.

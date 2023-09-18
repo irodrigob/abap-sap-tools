@@ -86,6 +86,23 @@
      <MSGNR>012</MSGNR>
      <TEXT>Object &amp; not allowed</TEXT>
     </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANSLATE_TOOL</ARBGB>
+     <MSGNR>013</MSGNR>
+     <TEXT>Object &amp; &amp; not configured</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANSLATE_TOOL</ARBGB>
+     <MSGNR>014</MSGNR>
+     <TEXT>Language &amp; not valid</TEXT>
+    </T100>
+    <T100>
+     <SPRSL>E</SPRSL>
+     <ARBGB>ZSPT_TRANSLATE_TOOL</ARBGB>
+     <MSGNR>015</MSGNR>
+    </T100>
    </T100>
   </asx:values>
  </asx:abap>
