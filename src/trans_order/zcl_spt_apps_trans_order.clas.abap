@@ -1,118 +1,118 @@
-class ZCL_SPT_APPS_TRANS_ORDER definition
-  public
-  inheriting from ZCL_SPT_APPS_BASE
-  create public .
+CLASS zcl_spt_apps_trans_order DEFINITION
+  PUBLIC
+  INHERITING FROM zcl_spt_apps_base
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  types:
-    BEGIN OF ts_objects_key,
-             pgmid    TYPE pgmid,
-             object   TYPE trobjtype,
-             obj_name TYPE trobj_name,
-           END OF ts_objects_key .
-  types:
-    tt_objects_key TYPE STANDARD TABLE OF ts_objects_key WITH EMPTY KEY .
-  types:
-    BEGIN OF ts_orders_task_data,
-             order             TYPE trkorr,
-             order_desc        TYPE string,
-             order_user        TYPE uname,
-             order_status      TYPE trstatus,
-             order_status_desc TYPE val_text,
-             order_type        TYPE trfunction,
-             order_type_desc   TYPE val_text,
-             order_has_objects TYPE sap_bool,
-             task              TYPE trkorr,
-             task_desc         TYPE string,
-             task_user         TYPE uname,
-             task_status       TYPE trstatus,
-             task_status_desc  TYPE val_text,
-             task_type         TYPE trfunction,
-             task_type_desc    TYPE val_text,
-             task_has_objects  TYPE sap_bool,
-           END OF ts_orders_task_data .
-  types:
-    tt_orders_task_data TYPE STANDARD TABLE OF ts_orders_task_data WITH EMPTY KEY .
-  types:
-    BEGIN OF ts_systems_transport,
-             system_name TYPE sysname,
-             system_desc TYPE string,
-           END OF ts_systems_transport .
-  types:
-    BEGIN OF ts_update_order,
-             user        TYPE tr_as4user,
-             description TYPE as4text,
-           END OF ts_update_order .
-  types:
-    tt_systems_transport TYPE STANDARD TABLE OF ts_systems_transport WITH EMPTY KEY .
-  types:
-    BEGIN OF ts_release_multiple_orders,
-             order       TYPE trkorr,
-             task        TYPE trkorr,
-             status      TYPE trstatus,
-             status_desc TYPE val_text.
+    TYPES:
+      BEGIN OF ts_objects_key,
+        pgmid    TYPE pgmid,
+        object   TYPE trobjtype,
+        obj_name TYPE trobj_name,
+      END OF ts_objects_key .
+    TYPES:
+      tt_objects_key TYPE STANDARD TABLE OF ts_objects_key WITH EMPTY KEY .
+    TYPES:
+      BEGIN OF ts_orders_task_data,
+        order             TYPE trkorr,
+        order_desc        TYPE string,
+        order_user        TYPE uname,
+        order_status      TYPE trstatus,
+        order_status_desc TYPE val_text,
+        order_type        TYPE trfunction,
+        order_type_desc   TYPE val_text,
+        order_has_objects TYPE sap_bool,
+        task              TYPE trkorr,
+        task_desc         TYPE string,
+        task_user         TYPE uname,
+        task_status       TYPE trstatus,
+        task_status_desc  TYPE val_text,
+        task_type         TYPE trfunction,
+        task_type_desc    TYPE val_text,
+        task_has_objects  TYPE sap_bool,
+      END OF ts_orders_task_data .
+    TYPES:
+      tt_orders_task_data TYPE STANDARD TABLE OF ts_orders_task_data WITH EMPTY KEY .
+    TYPES:
+      BEGIN OF ts_systems_transport,
+        system_name TYPE sysname,
+        system_desc TYPE string,
+      END OF ts_systems_transport .
+    TYPES:
+      BEGIN OF ts_update_order,
+        user        TYPE tr_as4user,
+        description TYPE as4text,
+      END OF ts_update_order .
+    TYPES:
+      tt_systems_transport TYPE STANDARD TABLE OF ts_systems_transport WITH EMPTY KEY .
+    TYPES:
+      BEGIN OF ts_release_multiple_orders,
+        order       TYPE trkorr,
+        task        TYPE trkorr,
+        status      TYPE trstatus,
+        status_desc TYPE val_text.
         INCLUDE TYPE zcl_spt_core_data=>ts_return.
     TYPES:
            END OF ts_release_multiple_orders .
-  types:
-    tt_release_multiple_orders TYPE STANDARD TABLE OF ts_release_multiple_orders WITH EMPTY KEY .
-  types:
-    BEGIN OF ts_order_objects,
-             order       TYPE trkorr,
-             as4pos      TYPE ddposition,
-             pgmid       TYPE pgmid,
-             object      TYPE trobjtype,
-             object_desc TYPE ddtext,
-             obj_name    TYPE trobj_name,
-             objfunc     TYPE objfunc,
-             lockflag    TYPE lockflag,
-             gennum      TYPE trgennum,
-             lang        TYPE spras,
-             activity    TYPE tractivity,
-           END OF ts_order_objects .
-  types:
-    tt_orders_objects TYPE STANDARD TABLE OF ts_order_objects WITH EMPTY KEY .
-  types:
-    BEGIN OF ts_input_delete_objects,
-             order    TYPE trkorr,
-             pgmid    TYPE pgmid,
-             object   TYPE trobjtype,
-             obj_name TYPE trobj_name,
-           END OF ts_input_delete_objects .
-  types:
-    tt_input_delete_objects TYPE STANDARD TABLE OF ts_input_delete_objects WITH DEFAULT KEY .
-  types:
-    BEGIN OF ts_return_delete_objects.
+    TYPES:
+      tt_release_multiple_orders TYPE STANDARD TABLE OF ts_release_multiple_orders WITH EMPTY KEY .
+    TYPES:
+      BEGIN OF ts_order_objects,
+        order       TYPE trkorr,
+        as4pos      TYPE ddposition,
+        pgmid       TYPE pgmid,
+        object      TYPE trobjtype,
+        object_desc TYPE ddtext,
+        obj_name    TYPE trobj_name,
+        objfunc     TYPE objfunc,
+        lockflag    TYPE lockflag,
+        gennum      TYPE trgennum,
+        lang        TYPE spras,
+        activity    TYPE tractivity,
+      END OF ts_order_objects .
+    TYPES:
+      tt_orders_objects TYPE STANDARD TABLE OF ts_order_objects WITH EMPTY KEY .
+    TYPES:
+      BEGIN OF ts_input_delete_objects,
+        order    TYPE trkorr,
+        pgmid    TYPE pgmid,
+        object   TYPE trobjtype,
+        obj_name TYPE trobj_name,
+      END OF ts_input_delete_objects .
+    TYPES:
+      tt_input_delete_objects TYPE STANDARD TABLE OF ts_input_delete_objects WITH DEFAULT KEY .
+    TYPES:
+      BEGIN OF ts_return_delete_objects.
         INCLUDE TYPE ts_input_delete_objects.
         INCLUDE TYPE zcl_spt_core_data=>ts_return.
     TYPES:
            END OF ts_return_delete_objects .
-  types:
-    tt_return_delete_objects TYPE STANDARD TABLE OF ts_return_delete_objects WITH DEFAULT KEY .
-  types:
-    BEGIN OF ts_delete_orders,
-             order TYPE trkorr,
-             task  TYPE trkorr.
+    TYPES:
+      tt_return_delete_objects TYPE STANDARD TABLE OF ts_return_delete_objects WITH DEFAULT KEY .
+    TYPES:
+      BEGIN OF ts_delete_orders,
+        order TYPE trkorr,
+        task  TYPE trkorr.
         INCLUDE TYPE zcl_spt_core_data=>ts_return.
     TYPES:
            END OF ts_delete_orders .
-  types:
-    tt_delete_orders TYPE STANDARD TABLE OF ts_delete_orders WITH EMPTY KEY .
-  types:
-    BEGIN OF ts_move_objects,
-             order TYPE trkorr.
+    TYPES:
+      tt_delete_orders TYPE STANDARD TABLE OF ts_delete_orders WITH EMPTY KEY .
+    TYPES:
+      BEGIN OF ts_move_objects,
+        order TYPE trkorr.
         INCLUDE TYPE ts_objects_key.
     TYPES:
            END OF ts_move_objects .
-  types:
-    tt_move_objects TYPE STANDARD TABLE OF ts_move_objects WITH EMPTY KEY .
+    TYPES:
+      tt_move_objects TYPE STANDARD TABLE OF ts_move_objects WITH EMPTY KEY .
 
     "! <p class="shorttext synchronized">Devuelve las ordenes de un usuario</p>
     "! @parameter iv_langu | <p class="shorttext synchronized">Idioma</p>
-  methods CONSTRUCTOR
-    importing
-      !IV_LANGU type SYLANGU default SY-LANGU .
+    METHODS constructor
+      IMPORTING
+        !iv_langu TYPE sylangu DEFAULT sy-langu .
     "! <p class="shorttext synchronized">Devuelve las ordenes de un usuario</p>
     "! @parameter iv_username | <p class="shorttext synchronized">Usuario</p>
     "! @parameter iv_type_workbench | <p class="shorttext synchronized">Ordenes workbench</p>
@@ -125,25 +125,25 @@ public section.
     "! @parameter iv_get_has_objects | <p class="shorttext synchronized">Verificar si tiene objetos</p>
     "! @parameter iv_complete_projects | <p class="shorttext synchronized">Devuelve todas las tareas de las ordenes y las ordenes de la</p>
     "! @parameter et_orders | <p class="shorttext synchronized">Ordenes</p>
-  methods GET_USER_ORDERS
-    importing
-      !IV_USERNAME type SYUNAME default SY-UNAME
-      !IV_TYPE_WORKBENCH type SAP_BOOL default ABAP_TRUE
-      !IV_TYPE_CUSTOMIZING type SAP_BOOL default ABAP_TRUE
-      !IV_TYPE_TRANSPORT type SAP_BOOL default ABAP_TRUE
-      !IV_STATUS_MODIF type SAP_BOOL default ABAP_TRUE
-      !IV_STATUS_RELEASE type SAP_BOOL default ABAP_FALSE
-      !IV_RELEASE_FROM_DATA type SY-DATUM optional
-      !IV_RELEASE_FROM_TO type SY-DATUM optional
-      !IV_GET_HAS_OBJECTS type SAP_BOOL default ABAP_TRUE
-      !IV_COMPLETE_PROJECTS type SAP_BOOL default ABAP_TRUE
-    exporting
-      !ET_ORDERS type TT_ORDERS_TASK_DATA .
+    METHODS get_user_orders
+      IMPORTING
+        !iv_username          TYPE syuname DEFAULT sy-uname
+        !iv_type_workbench    TYPE sap_bool DEFAULT abap_true
+        !iv_type_customizing  TYPE sap_bool DEFAULT abap_true
+        !iv_type_transport    TYPE sap_bool DEFAULT abap_true
+        !iv_status_modif      TYPE sap_bool DEFAULT abap_true
+        !iv_status_release    TYPE sap_bool DEFAULT abap_false
+        !iv_release_from_data TYPE sy-datum OPTIONAL
+        !iv_release_from_to   TYPE sy-datum OPTIONAL
+        !iv_get_has_objects   TYPE sap_bool DEFAULT abap_true
+        !iv_complete_projects TYPE sap_bool DEFAULT abap_true
+      EXPORTING
+        !et_orders            TYPE tt_orders_task_data .
     "! <p class="shorttext synchronized">Sistemas de transporte</p>
     "! @parameter rt_systems | <p class="shorttext synchronized">Sistemas</p>
-  methods GET_SYSTEMS_TRANSPORT
-    returning
-      value(RT_SYSTEMS) type TT_SYSTEMS_TRANSPORT .
+    METHODS get_systems_transport
+      RETURNING
+        VALUE(rt_systems) TYPE tt_systems_transport .
     "! <p class="shorttext synchronized">Hacer transporte de copia</p>
     "! @parameter it_orders | <p class="shorttext synchronized">Ordenes</p>
     "! @parameter iv_system | <p class="shorttext synchronized">Sistema</p>
@@ -151,83 +151,83 @@ public section.
     "! @parameter iv_release_order_new_task | <p class="shorttext synchronized">Liberar la orden/tarea en nueva tarea</p>
     "! @parameter et_return | <p class="shorttext synchronized">Retorno del proceso</p>
     "! @parameter ev_order | <p class="shorttext synchronized">Orden creada</p>
-  methods DO_TRANSPORT_COPY
-    importing
-      !IT_ORDERS type ZCL_SPT_TRANS_ORDER_DATA=>TT_ORDERS
-      !IV_SYSTEM type SYSNAME
-      !IV_DESCRIPTION type STRING
-      !IV_RELEASE_ORDER_NEW_TASK type SAP_BOOL default ABAP_TRUE
-    exporting
-      !ET_RETURN type ZCL_SPT_CORE_DATA=>TT_RETURN
-      !EV_ORDER type TRKORR .
+    METHODS do_transport_copy
+      IMPORTING
+        !it_orders                 TYPE zcl_spt_trans_order_data=>tt_orders
+        !iv_system                 TYPE sysname
+        !iv_description            TYPE string
+        !iv_release_order_new_task TYPE sap_bool DEFAULT abap_true
+      EXPORTING
+        !et_return                 TYPE zcl_spt_core_data=>tt_return
+        !ev_order                  TYPE trkorr .
     "! <p class="shorttext synchronized">Liberación de una orden/tarea</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden/tarea</p>
     "! @parameter iv_without_locking | <p class="shorttext synchronized">Sin bloqueo de objetos</p>
     "! @parameter es_return | <p class="shorttext synchronized">Resultado del proceso</p>
     "! @parameter ev_status | <p class="shorttext synchronized">Status al liberar</p>
     "! @parameter ev_status_desc | <p class="shorttext synchronized">Descripción del status</p>
-  methods RELEASE_ORDER
-    importing
-      !IV_WITHOUT_LOCKING type SAP_BOOL default ABAP_FALSE
-      !IV_ORDER type TRKORR
-    exporting
-      !ES_RETURN type ZCL_SPT_CORE_DATA=>TS_RETURN
-      !EV_STATUS type TRSTATUS
-      !EV_STATUS_DESC type VAL_TEXT .
+    METHODS release_order
+      IMPORTING
+        !iv_without_locking TYPE sap_bool DEFAULT abap_false
+        !iv_order           TYPE trkorr
+      EXPORTING
+        !es_return          TYPE zcl_spt_core_data=>ts_return
+        !ev_status          TYPE trstatus
+        !ev_status_desc     TYPE val_text .
     "! <p class="shorttext synchronized">Liberación de multiples ordenes/tareas</p>
     "! @parameter it_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
     "! @parameter iv_without_locking | <p class="shorttext synchronized">Sin bloqueo de objetos</p>
     "! @parameter et_return | <p class="shorttext synchronized">Retorno del proceso</p>
-  methods RELEASE_MULTIPLE_ORDERS
-    importing
-      !IV_WITHOUT_LOCKING type SAP_BOOL default ABAP_FALSE
-      !IT_ORDERS type ZCL_SPT_TRANS_ORDER_DATA=>TT_ORDERS
-    returning
-      value(ET_RETURN) type TT_RELEASE_MULTIPLE_ORDERS .
+    METHODS release_multiple_orders
+      IMPORTING
+        !iv_without_locking TYPE sap_bool DEFAULT abap_false
+        !it_orders          TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING
+        VALUE(et_return)    TYPE tt_release_multiple_orders .
     "! <p class="shorttext synchronized">Actualiza los datos de una orden/tarea</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden/tarea</p>
     "! @parameter is_data | <p class="shorttext synchronized">Valores</p>
     "! @parameter rs_return | <p class="shorttext synchronized">Resultado del proceso</p>
-  methods UPDATE_ORDER
-    importing
-      !IV_ORDER type TRKORR
-      !IS_DATA type TS_UPDATE_ORDER
-    returning
-      value(RS_RETURN) type ZCL_SPT_CORE_DATA=>TS_RETURN .
+    METHODS update_order
+      IMPORTING
+        !iv_order        TYPE trkorr
+        !is_data         TYPE ts_update_order
+      RETURNING
+        VALUE(rs_return) TYPE zcl_spt_core_data=>ts_return .
     "! <p class="shorttext synchronized">Cambio del usuario de la orden</p>
     "! @parameter iv_user | <p class="shorttext synchronized">Usuario</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden/tarea</p>
     "! @parameter rs_return | <p class="shorttext synchronized">Resultado del proceso</p>
-  methods CHANGE_USER_ORDER
-    importing
-      !IV_USER type TR_AS4USER
-      !IV_ORDER type TRKORR
-    returning
-      value(RS_RETURN) type ZCL_SPT_CORE_DATA=>TS_RETURN .
+    METHODS change_user_order
+      IMPORTING
+        !iv_user         TYPE tr_as4user
+        !iv_order        TYPE trkorr
+      RETURNING
+        VALUE(rs_return) TYPE zcl_spt_core_data=>ts_return .
     "! <p class="shorttext synchronized">Devuelve los objetos de una orden</p>
     "! @parameter it_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
     "! @parameter rt_objects | <p class="shorttext synchronized">Lista de objetos</p>
-  methods GET_ORDERS_OBJECTS
-    importing
-      !IT_ORDERS type ZCL_SPT_TRANS_ORDER_DATA=>TT_ORDERS
-    returning
-      value(RT_OBJECTS) type TT_ORDERS_OBJECTS .
+    METHODS get_orders_objects
+      IMPORTING
+        !it_orders        TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING
+        VALUE(rt_objects) TYPE tt_orders_objects .
     "! <p class="shorttext synchronized">Borra objetos de una orden</p>
     "! @parameter it_objects | <p class="shorttext synchronized">Objetos</p>
     "! @parameter rt_return | <p class="shorttext synchronized">Retorno del proceso</p>
-  methods DELETE_ORDER_OBJECTS
-    importing
-      !IT_OBJECTS type TT_INPUT_DELETE_OBJECTS
-    returning
-      value(RT_RETURN) type TT_RETURN_DELETE_OBJECTS .
+    METHODS delete_order_objects
+      IMPORTING
+        !it_objects      TYPE tt_input_delete_objects
+      RETURNING
+        VALUE(rt_return) TYPE tt_return_delete_objects .
     "! <p class="shorttext synchronized">Borrado de ordenes y tareas</p>
     "! @parameter it_order | <p class="shorttext synchronized">Lista de ordenes/tareas</p>
     "! @parameter et_return | <p class="shorttext synchronized">Resultado del proceso</p>
-  methods DELETE_ORDERS
-    importing
-      !IT_ORDERS type ZCL_SPT_TRANS_ORDER_DATA=>TT_ORDERS
-    returning
-      value(RT_RETURN) type TT_DELETE_ORDERS .
+    METHODS delete_orders
+      IMPORTING
+        !it_orders       TYPE zcl_spt_trans_order_data=>tt_orders
+      RETURNING
+        VALUE(rt_return) TYPE tt_delete_orders .
     "! <p class="shorttext synchronized">Creación de orden y su tarea</p>
     "! @parameter iv_type | <p class="shorttext synchronized">Tipo de orden</p>
     "! @parameter iv_system | <p class="shorttext synchronized">Sistema</p>
@@ -236,54 +236,54 @@ public section.
     "! @parameter iv_user | <p class="shorttext synchronized">Usuario</p>
     "! @parameter it_users | <p class="shorttext synchronized">Usuarios de las tareas</p>
     "! @parameter ev_order | <p class="shorttext synchronized">Orden creada</p>
-  methods CREATE_ORDER_AND_TASK
-    importing
-      !IV_TYPE type TRFUNCTION
-      !IV_DESCRIPTION type STRING
-      !IV_SYSTEM type SYSNAME optional
-      !IV_USER type SYUNAME default SY-UNAME
-      !IT_USERS_TASK type ZCL_SPT_TRANS_ORDER_DATA=>TT_USERS optional
-    exporting
-      !ES_RETURN type ZCL_SPT_CORE_DATA=>TS_RETURN
-      !EV_ORDER type TRKORR
-      !ET_ORDER_DATA type TT_ORDERS_TASK_DATA .
+    METHODS create_order_and_task
+      IMPORTING
+        !iv_type        TYPE trfunction
+        !iv_description TYPE string
+        !iv_system      TYPE sysname OPTIONAL
+        !iv_user        TYPE syuname DEFAULT sy-uname
+        !it_users_task  TYPE zcl_spt_trans_order_data=>tt_users OPTIONAL
+      EXPORTING
+        !es_return      TYPE zcl_spt_core_data=>ts_return
+        !ev_order       TYPE trkorr
+        !et_order_data  TYPE tt_orders_task_data .
     "! <p class="shorttext synchronized">Mueve los objetos de varias ordenes a una orden</p>
     "! @parameter it_objects | <p class="shorttext synchronized">Objetos</p>
     "! @parameter iv_order_to | <p class="shorttext synchronized">Orden destino</p>
     "! @parameter et_return | <p class="shorttext synchronized">Retorno del proceso</p>
-  methods MOVE_ORDERS_OBJECTS
-    importing
-      !IT_OBJECTS type TT_MOVE_OBJECTS
-      !IV_ORDER_TO type TRKORR
-    exporting
-      !ET_RETURN type ZCL_SPT_CORE_DATA=>TT_RETURN .
+    METHODS move_orders_objects
+      IMPORTING
+        !it_objects  TYPE tt_move_objects
+        !iv_order_to TYPE trkorr
+      EXPORTING
+        !et_return   TYPE zcl_spt_core_data=>tt_return .
     "! <p class="shorttext synchronized">Mueve los objetos de una orden a otra</p>
     "! @parameter it_objects | <p class="shorttext synchronized">Objetos</p>
     "! @parameter iv_order_to | <p class="shorttext synchronized">Orden destino</p>
     "! @parameter iv_order_from | <p class="shorttext synchronized">Orden origen</p>
     "! @parameter et_return | <p class="shorttext synchronized">Retorno del proceso</p>
-  methods MOVE_ORDER_OBJECTS
-    importing
-      !IT_OBJECTS type TT_OBJECTS_KEY
-      !IV_ORDER_FROM type TRKORR
-      !IV_ORDER_TO type TRKORR
-    exporting
-      !ET_RETURN type ZCL_SPT_CORE_DATA=>TT_RETURN .
+    METHODS move_order_objects
+      IMPORTING
+        !it_objects    TYPE tt_objects_key
+        !iv_order_from TYPE trkorr
+        !iv_order_to   TYPE trkorr
+      EXPORTING
+        !et_return     TYPE zcl_spt_core_data=>tt_return .
     "! <p class="shorttext synchronized">Bloqueos de objetos en la orden</p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden/tarea</p>
     "! @parameter it_objects | <p class="shorttext synchronized">Objetos</p>
     "! @parameter rt_return | <p class="shorttext synchronized">Retorno del proceso</p>
-  methods LOCK_OBJECTS
-    importing
-      !IV_ORDER type TRKORR
-      !IT_OBJECTS type TT_OBJECTS_KEY
-    returning
-      value(RT_RETURN) type ZCL_SPT_CORE_DATA=>TT_RETURN
-    raising
-      ZCX_SPT_TRANS_ORDER .
+    METHODS lock_objects
+      IMPORTING
+        !iv_order        TYPE trkorr
+        !it_objects      TYPE tt_objects_key
+      RETURNING
+        VALUE(rt_return) TYPE zcl_spt_core_data=>tt_return
+      RAISING
+        zcx_spt_trans_order .
 
-  methods ZIF_SPT_CORE_APP~GET_APP_TYPE
-    redefinition .
+    METHODS zif_spt_core_app~get_app_type
+        REDEFINITION .
   PROTECTED SECTION.
     TYPES tt_objects_texts TYPE STANDARD TABLE OF ko100 WITH DEFAULT KEY.
     TYPES: tv_allowed_request_types TYPE c LENGTH 20.
@@ -384,10 +384,12 @@ public section.
       RAISING   zcx_spt_trans_order.
     "! <p class="shorttext synchronized">Lectura de los datos de las ordenes</p>
     "! @parameter it_orders | <p class="shorttext synchronized">Ordenes</p>
+    "! @parameter iv_read_objects | <p class="shorttext synchronized">Obtener objetos de la orden</p>
     "! @parameter rt_return | <p class="shorttext synchronized">Resultado del proceso</p>
     METHODS get_orders_info
       IMPORTING
                 it_orders        TYPE zcl_spt_trans_order_data=>tt_orders
+                iv_read_objects  TYPE sap_bool DEFAULT abap_false
       RETURNING VALUE(rt_return) TYPE zcl_spt_core_data=>tt_return.
     "! <p class="shorttext synchronized">Llama al método antes de liberar </p>
     "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
@@ -482,7 +484,7 @@ ENDCLASS.
 
 
 
-CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
+CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
 
 
   METHOD add_objects_order.
@@ -607,7 +609,8 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
           " Si la tengo en la tabla global uso sus valores, en caso contrario los busco.
           READ TABLE mt_orders_data INTO DATA(ls_order_data) WITH KEY h-trkorr = <ls_orders>.
           IF sy-subrc NE 0.
-            ls_order_data = read_request_complete( <ls_orders> ).
+            ls_order_data = read_request_complete( iv_order = <ls_orders>
+                                                   iv_read_objects = abap_true ).
           ENDIF.
 
           DATA(ls_e070) = CORRESPONDING e070( ls_order_data-h ).
@@ -1136,7 +1139,8 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
       instance_badi_transport_copy( ).
 
       " Lectura del contenido de las ordenes
-      et_return = get_orders_info( it_orders ).
+      et_return = get_orders_info( EXPORTING it_orders = it_orders
+                                             iv_read_objects = abap_true ).
 
       IF et_return IS INITIAL.
 
@@ -1302,7 +1306,8 @@ CLASS ZCL_SPT_APPS_TRANS_ORDER IMPLEMENTATION.
     LOOP AT it_orders ASSIGNING FIELD-SYMBOL(<ls_orders>).
 
       TRY.
-          DATA(ls_data) = read_request_complete( <ls_orders> ).
+          DATA(ls_data) = read_request_complete( iv_order = <ls_orders>
+                                                 iv_read_objects = iv_read_objects ).
 
           INSERT ls_data INTO TABLE mt_orders_data.
 

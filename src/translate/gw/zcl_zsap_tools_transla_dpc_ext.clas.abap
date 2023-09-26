@@ -491,6 +491,31 @@ CLASS zcl_zsap_tools_transla_dpc_ext IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
+      " El idioma de origen es irrelevante para el transporte pero se lo paso para que los procesos internos funcionen-
+      ASSIGN lt_languages[ language = sy-langu ] TO <ls_language>.
+      IF sy-subrc = 0.
+        DATA(lv_olang) = <ls_language>-lxe_language.
+      ENDIF.
+
+      IF lv_errors = abap_false.
+        mo_translate->set_params_selscreen(
+          EXPORTING
+            iv_olang      = lv_olang
+            it_tlang      = lt_tlang
+            iv_trkorr     = cs_data-order ).
+
+        mo_translate->add_objects_transp_req(
+          EXPORTING
+            it_objects =  CORRESPONDING #( cs_data-objecttextset )
+          IMPORTING
+            et_return  = DATA(lt_return)
+        ).
+
+        cs_data-returnset = VALUE #( FOR <wa> IN lt_return ( type = <wa>-type
+                                                             message = <wa>-message ) ).
+
+      ENDIF.
+
     ELSE.
       lv_errors = abap_true.
       message_container->add_messages_from_bapi(
