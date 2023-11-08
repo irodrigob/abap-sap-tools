@@ -45,6 +45,7 @@ CLASS zcl_spt_translate_tool DEFINITION
         i_message_v3    TYPE any OPTIONAL
         i_message_v4    TYPE any OPTIONAL
         i_id            TYPE any OPTIONAL
+        iv_langu        TYPE sylangu DEFAULT sy-langu
       RETURNING
         VALUE(r_return) TYPE bapiret2 .                     "#EC NOTEXT
 
@@ -600,25 +601,23 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
     ELSE.
       r_return-id = i_id.
     ENDIF.
+
     r_return-number = i_number.
     r_return-message_v1 = i_message_v1.
     r_return-message_v2 = i_message_v2.
     r_return-message_v3 = i_message_v3.
     r_return-message_v4 = i_message_v4.
 
-
-    CALL FUNCTION 'BAPI_MESSAGE_GETDETAIL'
+    r_return-message = zcl_spt_utilities=>fill_return(
       EXPORTING
-        id         = r_return-id
-        number     = r_return-number
-        language   = sy-langu
-        textformat = 'ASC'
-        message_v1 = r_return-message_v1
-        message_v2 = r_return-message_v2
-        message_v3 = r_return-message_v3
-        message_v4 = r_return-message_v4
-      IMPORTING
-        message    = r_return-message.
+        iv_type       = i_type
+        iv_id         = COND #( WHEN i_id IS NOT SUPPLIED THEN 'ZSPT_TRANSLATE_TOOL' ELSE i_id )
+        iv_number     = i_number
+        iv_message_v1 = i_message_v1
+        iv_message_v2 = i_message_v2
+        iv_message_v3 = i_message_v3
+        iv_message_v4 = i_message_v4
+        iv_langu = iv_langu )-message.
 
   ENDMETHOD.
 

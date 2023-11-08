@@ -49,7 +49,7 @@ CLASS zcl_spt_apps_base IMPLEMENTATION.
 
 
   METHOD constructor.
-    mv_langu = iv_langu.
+    mv_langu = iv_langu..
   ENDMETHOD.
 
 
