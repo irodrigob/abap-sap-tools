@@ -473,6 +473,15 @@ CLASS zcl_spt_apps_trans_order DEFINITION
       RETURNING
                 VALUE(rt_return) TYPE zcl_spt_core_data=>tt_return
       RAISING   zcx_spt_trans_order .
+    "! <p class="shorttext synchronized">Borrado objetos todas las tareas de una orden</p>
+    "! @parameter it_object | <p class="shorttext synchronized">Objetos</p>
+    "! @parameter it_exclude_task | <p class="shorttext synchronized">Exclusión de tareas</p>
+    "! @parameter iv_order | <p class="shorttext synchronized">Orden</p>
+    METHODS delete_objects_from_all_task
+      IMPORTING
+        it_objects      TYPE zcl_spt_apps_trans_order=>tt_objects_key
+        it_exclude_task TYPE zcl_spt_trans_order_data=>tt_orders OPTIONAL
+        iv_order        TYPE e070-strkorr.
 
   PRIVATE SECTION.
 
@@ -1606,7 +1615,11 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
           IF line_exists( lt_return_add[ type = zcl_spt_core_data=>cs_message-type_error ] ).
             INSERT LINES OF lt_return_add INTO TABLE et_return.
           ELSE.
-            " Se borran los objetos de la orden original.
+            " Se borran los objetos de la orden original y las tareas de las orden principal si la tuviese
+            delete_objects_from_all_task( EXPORTING it_objects = it_objects
+                                                    iv_order = ls_request-h-strkorr
+                                                    it_exclude_task = VALUE #( ( iv_order_from ) ) ).
+
             DATA(lt_return_delete) = delete_order_objects( it_objects = VALUE #( FOR <wa> IN it_objects ( order = iv_order_from
                                                                                                          pgmid = <wa>-pgmid
                                                                                                          object = <wa>-object
@@ -2096,4 +2109,41 @@ CLASS zcl_spt_apps_trans_order IMPLEMENTATION.
     es_app-icon = 'shipping-status'.
     es_app-url_help = 'https://github.com/irodrigob/abap-sap-tools/wiki'.
   ENDMETHOD.
+
+  METHOD delete_objects_from_all_task.
+    DATA(lt_r_task_exclude) = VALUE zcl_spt_trans_order_data=>tt_r_orders( FOR <wa> IN it_exclude_task ( sign = 'E' option = 'EQ' low = <wa> ) ).
+    SELECT trkorr INTO TABLE @DATA(lt_tasks)
+           FROM e070
+           WHERE strkorr = @iv_order
+                 AND trkorr IN @lt_r_task_exclude.
+    IF sy-subrc = 0.
+
+      LOOP AT lt_tasks ASSIGNING FIELD-SYMBOL(<ls_task>).
+
+        DATA(lt_objects) = it_objects.
+        TRY.
+            " Se leen los datos de la orden para saber sus objetos y para saber si hay alguno que coincida.
+            DATA(ls_request) = read_request_complete( EXPORTING iv_order = <ls_task>-trkorr
+                                                                 iv_read_objects     = abap_true ).
+
+            LOOP AT lt_objects ASSIGNING FIELD-SYMBOL(<ls_object>).
+              DATA(lv_tabix) = sy-tabix.
+              IF NOT line_exists( ls_request-objects[ pgmid = <ls_object>-pgmid
+                                                      object = <ls_object>-object
+                                                      obj_name = <ls_object>-obj_name ] ).
+                DELETE lt_objects INDEX lv_tabix.
+              ENDIF.
+            ENDLOOP.
+            IF lt_objects IS NOT INITIAL.
+              delete_order_objects( it_objects = VALUE #( FOR <wa1> IN it_objects ( order = <ls_task>-trkorr
+                                                                                    pgmid = <wa1>-pgmid
+                                                                                    object = <wa1>-object
+                                                                                    obj_name = <wa1>-obj_name ) ) ).
+            ENDIF.
+          CATCH zcx_spt_trans_order .
+        ENDTRY.
+      ENDLOOP.
+    ENDIF.
+  ENDMETHOD.
+
 ENDCLASS.

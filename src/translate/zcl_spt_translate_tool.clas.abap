@@ -595,13 +595,6 @@ CLASS zcl_spt_translate_tool IMPLEMENTATION.
 
     r_return-type = i_type.
 
-* Se no se pasa una clase de mensaje se pone la generica de la aplicación.
-    IF i_id IS NOT SUPPLIED.
-      r_return-id = 'ZSPT_TRANSLATE_TOOL'.
-    ELSE.
-      r_return-id = i_id.
-    ENDIF.
-
     r_return-number = i_number.
     r_return-message_v1 = i_message_v1.
     r_return-message_v2 = i_message_v2.
